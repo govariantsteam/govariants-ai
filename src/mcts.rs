@@ -2,6 +2,17 @@ use crate::game::{Game, GameResult};
 use rand::distr::weighted::WeightedIndex;
 use rand::prelude::*;
 use rand::rng;
+use rand_distr::Gamma;
+
+/// Configuration for Dirichlet noise at the MCTS root node.
+/// Noise is mixed into the prior: p = (1 - epsilon) * p + epsilon * Dir(alpha)
+#[derive(Clone, Debug)]
+pub struct NoiseConfig {
+    /// Dirichlet alpha parameter. Typical: 0.03 for 19x19 Go, 0.3 for chess.
+    pub alpha: f32,
+    /// Fraction of noise to mix in. Typical: 0.25.
+    pub epsilon: f32,
+}
 
 /// Configuration for MCTS search.
 #[derive(Clone, Debug)]
@@ -13,6 +24,8 @@ pub struct MctsConfig {
     /// Temperature for move selection. Higher = more random.
     /// 0 = always pick best move.
     pub temperature: f32,
+    /// Optional Dirichlet noise for exploration during self-play.
+    pub noise: Option<NoiseConfig>,
 }
 
 impl Default for MctsConfig {
@@ -21,6 +34,7 @@ impl Default for MctsConfig {
             num_simulations: 200,
             cpuct: 1.4,
             temperature: 1.0,
+            noise: None,
         }
     }
 }
@@ -136,6 +150,41 @@ impl MctsNode {
     }
 }
 
+/// Sample from a Dirichlet distribution by sampling independent Gamma(alpha, 1) variates.
+fn sample_dirichlet(alpha: f32, n: usize, rng: &mut impl Rng) -> Vec<f32> {
+    let gamma = Gamma::new(alpha as f64, 1.0).unwrap();
+    let samples: Vec<f64> = (0..n).map(|_| rng.sample(gamma)).collect();
+    let sum: f64 = samples.iter().sum();
+    if sum > 0.0 {
+        samples.iter().map(|&s| (s / sum) as f32).collect()
+    } else {
+        vec![1.0 / n as f32; n]
+    }
+}
+
+/// Apply Dirichlet noise to the prior probabilities of a node's children.
+fn apply_dirichlet_noise(node: &mut MctsNode, alpha: f32, epsilon: f32) {
+    let legal_indices: Vec<usize> = node
+        .children
+        .iter()
+        .enumerate()
+        .filter_map(|(i, c)| c.as_ref().map(|_| i))
+        .collect();
+
+    if legal_indices.is_empty() {
+        return;
+    }
+
+    let mut rng = rng();
+    let noise = sample_dirichlet(alpha, legal_indices.len(), &mut rng);
+
+    for (j, &idx) in legal_indices.iter().enumerate() {
+        if let Some(child) = &mut node.children[idx] {
+            child.prior = (1.0 - epsilon) * child.prior + epsilon * noise[j];
+        }
+    }
+}
+
 /// Run MCTS search and return a policy (visit count distribution over actions).
 pub fn search<G: Game, E: Evaluator<G>>(
     game: &G,
@@ -148,6 +197,11 @@ pub fn search<G: Game, E: Evaluator<G>>(
     // Expand root
     let (policy, _) = evaluator.evaluate(game);
     expand_node(&mut root, &policy, game);
+
+    // Apply Dirichlet noise at root for exploration
+    if let Some(noise) = &config.noise {
+        apply_dirichlet_noise(&mut root, noise.alpha, noise.epsilon);
+    }
 
     for _ in 0..config.num_simulations {
         let mut state = game.clone();
@@ -284,6 +338,7 @@ mod tests {
             num_simulations: 50,
             cpuct: 1.4,
             temperature: 1.0,
+            noise: None,
         };
 
         let policy = search(&game, &evaluator, &config);
@@ -305,6 +360,7 @@ mod tests {
             num_simulations: 50,
             cpuct: 1.4,
             temperature: 1.0,
+            noise: None,
         };
 
         let policy = search(&game, &evaluator, &config);
@@ -355,6 +411,7 @@ mod tests {
             num_simulations: 50,
             cpuct: 1.4,
             temperature: 0.0, // deterministic
+            noise: None,
         };
 
         let policy = search(&game, &evaluator, &config);
