@@ -153,9 +153,20 @@ with open("data/game_000000.bin", "rb") as f:
 
 ## Training strategy
 
-1. Train a base model on standard 9x9 Go
-2. Fine-tune for each variant from the base model
-3. For variants very far from Go (quantum, phantom), train from scratch on smaller boards
+Train on mixed topologies from day one — don't start with standard 9x9 Go and fine-tune. Training on a fixed grid risks learning grid-specific biases (opening theory, fixed-size patterns) that don't transfer to irregular boards.
+
+**Curriculum:**
+
+| Phase | Node range | Goal |
+|-------|-----------|------|
+| 1 | 50–100 nodes | Learn basic Go: capturing, not filling eyes, basic life/death |
+| 2 | 100–250 nodes | Scale reasoning: ladders, territory, larger fights |
+| 3 | 250–400 nodes | Full-size optimization toward 361-node target |
+
+- Mix all topologies (2D, 3D, irregular) freely within each phase
+- Include a small number of 25-node games throughout for coverage
+- Transition between phases based on observed learning, not fixed epochs
+- Game length scales with board size — front-load phase 1 heavily
 
 ## Roadmap
 
@@ -164,6 +175,6 @@ See [open issues](https://github.com/govariantsteam/govariants-ai/issues) for th
 1. ~~Self-play data pipeline (#1)~~ ✅
 2. GNN model and training loop (#2) ← **next up**
 3. Full training loop integration (#3)
-4. Train and validate 9x9 Go model (#4)
+4. Train and validate model on mixed topologies (#4)
 5. Port variant game rules to Rust (#5)
 6. Serving integration with govariants (#6)
