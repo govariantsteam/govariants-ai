@@ -1,9 +1,9 @@
-/// Core game trait that all variants implement.
-/// Designed for AlphaZero-style training with GNN evaluation.
-///
-/// The graph-based interface (num_nodes, adjacency, node_features) allows
-/// a single GNN architecture to work across all board topologies:
-/// grids, cubes, circular boards, etc.
+//! Core game trait that all variants implement.
+//! Designed for AlphaZero-style training with GNN evaluation.
+//!
+//! The graph-based interface (num_nodes, adjacency, node_features) allows
+//! a single GNN architecture to work across all board topologies:
+//! grids, cubes, circular boards, etc.
 
 /// Result of a terminated game, from the perspective of each player.
 #[derive(Debug, Clone)]

@@ -74,7 +74,7 @@ where
             let completed = games_completed.fetch_add(1, Ordering::Relaxed) + 1;
             total_examples.fetch_add(num_examples, Ordering::Relaxed);
 
-            if completed % log_interval == 0 || completed == config.num_games {
+            if completed.is_multiple_of(log_interval) || completed == config.num_games {
                 let total_elapsed = start.elapsed().as_secs_f64();
                 let games_per_sec = completed as f64 / total_elapsed;
                 let remaining = (config.num_games - completed) as f64 / games_per_sec;
@@ -279,11 +279,7 @@ mod tests {
     use crate::games::baduk::{Baduk, BadukConfig};
     use crate::mcts::{MctsConfig, NoiseConfig, RandomRolloutEvaluator};
     fn small_game() -> Baduk {
-        Baduk::new(BadukConfig {
-            width: 5,
-            height: 5,
-            komi: 6.5,
-        })
+        Baduk::new(BadukConfig::grid(5, 5, 6.5))
     }
 
     #[test]
@@ -398,7 +394,7 @@ mod tests {
         let files: Vec<_> = fs::read_dir(&dir)
             .unwrap()
             .filter_map(|e| e.ok())
-            .filter(|e| e.path().extension().map_or(false, |ext| ext == "bin"))
+            .filter(|e| e.path().extension().is_some_and(|ext| ext == "bin"))
             .collect();
         assert_eq!(files.len(), 4);
 
