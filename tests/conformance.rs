@@ -15,7 +15,7 @@
 
 use govariants_ai::game::Game;
 use govariants_ai::games::baduk::{Baduk, BadukConfig, BadukMove, Color, Scratch};
-use govariants_ai::games::topology::Topology;
+use govariants_ai::govariants::{decode_move, grid_dimensions, topology_from_config};
 use serde_json::Value;
 use std::path::{Path, PathBuf};
 
@@ -32,90 +32,6 @@ fn corpus_dir() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/corpus")
 }
 
-/// govariants board config -> our topology.
-fn topology_from_config(board: &Value) -> Result<Topology, String> {
-    let kind = board
-        .get("type")
-        .and_then(Value::as_str)
-        .ok_or("board config has no type")?;
-    match kind {
-        "grid" => {
-            let width = board
-                .get("width")
-                .and_then(Value::as_u64)
-                .ok_or("grid board has no width")? as usize;
-            let height = board
-                .get("height")
-                .and_then(Value::as_u64)
-                .ok_or("grid board has no height")? as usize;
-            Ok(Topology::Grid { width, height })
-        }
-        "circular" => {
-            let rings = board
-                .get("rings")
-                .and_then(Value::as_u64)
-                .ok_or("circular board has no rings")? as usize;
-            let nodes_per_ring = board
-                .get("nodesPerRing")
-                .and_then(Value::as_u64)
-                .ok_or("circular board has no nodesPerRing")? as usize;
-            Ok(Topology::Circular {
-                rings,
-                nodes_per_ring,
-            })
-        }
-        "gridWithHoles" => {
-            let rows = board
-                .get("bitmap")
-                .and_then(Value::as_array)
-                .ok_or("gridWithHoles board has no bitmap")?;
-            let bitmap = rows
-                .iter()
-                .map(|row| {
-                    row.as_array()
-                        .ok_or("bitmap row is not an array")
-                        .map(|cells| {
-                            cells
-                                .iter()
-                                .map(|c| c.as_u64().unwrap_or(0) as u8)
-                                .collect::<Vec<u8>>()
-                        })
-                })
-                .collect::<Result<Vec<Vec<u8>>, &str>>()?;
-            Ok(Topology::GridWithHoles { bitmap })
-        }
-        // polygonal, sierpinsky, trihexagonal, sunflower and custom also
-        // exist on the live server. See govariants' boardFactory and helpers.
-        other => Err(format!("board type '{}' not implemented", other)),
-    }
-}
-
-/// SGF move string -> node index. "dd" is (x=3, y=3); board is row-major.
-fn decode_grid_move(text: &str, width: usize, height: usize) -> Result<usize, String> {
-    let bytes = text.as_bytes();
-    if bytes.len() != 2 {
-        return Err(format!("expected a 2-character SGF move, got '{}'", text));
-    }
-    let x = (bytes[0] as char as u8).wrapping_sub(b'a') as usize;
-    let y = (bytes[1] as char as u8).wrapping_sub(b'a') as usize;
-    if x >= width || y >= height {
-        return Err(format!("move '{}' is off a {}x{} board", text, width, height));
-    }
-    Ok(y * width + x)
-}
-
-/// Graph boards encode a move as the decimal node index.
-fn decode_index_move(text: &str, num_nodes: usize) -> Result<usize, String> {
-    let node: usize = text
-        .parse()
-        .map_err(|_| format!("expected a node index, got '{}'", text))?;
-    if node >= num_nodes {
-        return Err(format!("node {} is outside a {}-node board", node, num_nodes));
-    }
-    Ok(node)
-}
-
-/// Our board, rendered the way the corpus stores it.
 fn glyph(color: Color) -> char {
     match color {
         Color::Empty => '.',
@@ -190,11 +106,7 @@ fn replay(path: &Path) -> Result<usize, Divergence> {
     };
     // Grids are addressed as SGF coordinates in a 2D board; every other
     // topology is a flat node list addressed by index.
-    let grid = match &topology {
-        Topology::Grid { width, height } => Some((*width, *height)),
-        _ => None,
-    };
-    let num_nodes = topology.num_nodes();
+    let grid = grid_dimensions(&topology);
     let komi = config.get("komi").and_then(Value::as_f64).unwrap_or(6.5) as f32;
 
     let mut game = Baduk::new(BadukConfig {
@@ -236,11 +148,7 @@ fn replay(path: &Path) -> Result<usize, Divergence> {
                     }
                 }
                 other => {
-                    let decoded = match grid {
-                        Some((width, height)) => decode_grid_move(other, width, height),
-                        None => decode_index_move(other, num_nodes),
-                    };
-                    let node = match decoded {
+                    let node = match decode_move(&topology, other) {
                         Ok(n) => n,
                         Err(reason) => return Err(fail(index, reason)),
                     };

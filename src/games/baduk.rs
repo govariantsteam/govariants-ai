@@ -663,6 +663,63 @@ impl Baduk {
         found
     }
 
+    /// Build a position directly from a board, rather than by replaying moves.
+    ///
+    /// This is what joining a game in progress needs: the server hands over a
+    /// board, not a move list.
+    ///
+    /// Caveat worth stating plainly: ko state cannot be recovered from a
+    /// single position. Positional superko history is genuinely gone, and even
+    /// simple ko needs the previous board. A position built this way therefore
+    /// considers ko recaptures legal, and a caller playing against a real
+    /// server should be ready for a move to be rejected and fall back to its
+    /// next choice.
+    pub fn from_position(
+        config: BadukConfig,
+        stones: Vec<Color>,
+        next_to_play: usize,
+        captures: [usize; 2],
+    ) -> Result<Self, String> {
+        let def = Arc::new(BoardDef::new(config.topology));
+        let expected = def.graph.num_nodes();
+        if stones.len() != expected {
+            return Err(format!(
+                "position has {} points but the board has {}",
+                stones.len(),
+                expected
+            ));
+        }
+        if next_to_play > 1 {
+            return Err(format!("player {} is not 0 or 1", next_to_play));
+        }
+
+        let mut hash = 0u64;
+        for (node, &color) in stones.iter().enumerate() {
+            if color != Color::Empty {
+                hash ^= def.zobrist[node][color.zobrist_slot()];
+            }
+        }
+
+        let mut game = Baduk {
+            def,
+            komi: config.komi,
+            stones,
+            hash,
+            next_to_play,
+            captures,
+            consecutive_passes: 0,
+            game_over: false,
+            result: None,
+            seen_states: HashSet::new(),
+            track_superko: true,
+            simple_ko: None,
+            last_move: None,
+        };
+        let key = game.state_key();
+        game.seen_states.insert(key);
+        Ok(game)
+    }
+
     /// A cheap copy for rollouts: shares the immutable board data, drops the
     /// superko history, and disables superko tracking. This is the hot path,
     /// so it must not copy the history set.

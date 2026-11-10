@@ -304,26 +304,86 @@ of what players happened to play.
 
 ## Playing on govariants.com
 
-A bot needs no server-side support — it is an ordinary API client:
+There is a working bot client (`src/bin/bot.rs`). It needs no server-side
+support: it registers, logs in with a password, takes a seat and posts moves
+exactly as a browser does.
+
+```bash
+# one-off: create the account (writes .govariants-bot-credentials, gitignored)
+cargo run --release --bin bot -- register --username govariantsAiBot
+
+# host a game and wait for a human to take the other seat
+cargo run --release --bin bot -- host --board 9x9 --simulations 4000
+
+# read a game and report the move it would play, without writing anything
+cargo run --release --bin bot -- probe --game-id <id>
+
+# list games, marking which ones it can actually play
+cargo run --release --bin bot -- games
+
+# join an existing game, or give up a seat
+cargo run --release --bin bot -- play --game-id <id> [--seat 0] [--dry-run]
+cargo run --release --bin bot -- leave --game-id <id> --seat 0
+```
+
+Point `--base` at a local instance to test against one.
+
+### How it behaves
+
+`host` is the preferred way to play it: the bot creates its own game and waits,
+so nobody ends up playing a bot without choosing to. It prints the URL to open.
+
+It **refuses to sit at a board it cannot parse** rather than taking a seat and
+then playing badly, and `games` shows exactly why a game is unplayable:
+
+```
+game id                    board            phase     seats   playable
+6acea8f34af6cf110acfe007   grid             play      open    yes
+6aca445aec4422373d5a2a93   sunflower        play      full    no (board type 'sunflower' is not implemented)
+```
+
+**If the server rejects a move, the bot falls back to its next-best choice.**
+That is a design decision, not a patch: `Baduk::from_position` builds a
+position from a board rather than from a move list, because that is what
+joining a game in progress gives you — and **ko state cannot be recovered from
+a single position**. Positional superko history is genuinely gone, and even
+simple ko needs the previous board. So a rejection is expected rather than
+exceptional, and retrying the next candidate turns a correctness problem into
+a retry. It doubles as a safety net for exactly the rules divergence the
+conformance harness exists to catch.
+
+Credentials come from `GOVARIANTS_BOT_USERNAME` / `GOVARIANTS_BOT_PASSWORD`,
+or from `.govariants-bot-credentials` (mode 0600, gitignored) which `register`
+writes. The password is generated and never printed.
+
+Only the `baduk` variant is supported, on grid, circular and gridWithHoles
+boards. Everything else it declines to play. Note that the torus and cube
+topologies in this repo are **not** govariants board types — cube is a separate
+variant there — so they cannot be hosted on the site yet.
+
+Use an obviously-bot account name. There is no `bot` user role on the server
+(`UserRole` is `"admin"` only), so the username is the only disclosure. Names
+must be alphanumeric: the server rejects hyphens and underscores.
+
+### The API, for reference
 
 | Step | Endpoint |
 |---|---|
-| Register the bot account | `POST /api/register` |
+| Register | `POST /api/register` (`{username, password}`; email optional, not sent) |
 | Log in | `POST /api/login` |
-| Fetch the CSRF token | `GET /api/checkLogin` -> `{user, csrf_token}` |
-| Find open games | `GET /api/games?variant=…&count=&offset=` |
+| CSRF token | `GET /api/checkLogin` -> `{user, csrf_token}` |
+| List games | `GET /api/games?variant=&count=&offset=` |
+| Create a game | `POST /api/games` (`{variant, config}`) |
 | Take a seat | `POST /api/games/:id/sit/:seat` |
 | Read the position | `GET /api/games/:id/state/initial`, `…/state?round=&seat=` |
 | Play | `POST /api/games/:id/move`, body `{"<seat>": "<move>"}` |
 
-Auth is a session cookie plus a `CSRF-Token` header. Live updates arrive over
-Socket.IO on `game/:id`, `game/:id/seats` and `game/:id/:seat` (the last
-carries hidden state and the server checks seat occupancy, which is how
-Phantom Go would work).
-
-Use a **full password login with an obviously-named account**, not a guest
-session, so it is clear a bot is playing. There is no `bot` user role yet — the
-`UserRole` type is `"admin"` only — so the username is the disclosure.
+Auth is a session cookie plus a `CSRF-Token` header. Moves are SGF coordinates
+on grids (`"dd"`) and the decimal node index on every other board type. Live
+updates are available over Socket.IO on `game/:id`, `game/:id/seats` and
+`game/:id/:seat` (the last carries hidden state and the server checks seat
+occupancy, which is how Phantom Go would work) — but the bot polls instead,
+which is plenty for a turn-based game and avoids a websocket client.
 
 ## Training data format
 
@@ -395,5 +455,5 @@ See [open issues](https://github.com/govariantsteam/govariants-ai/issues) for th
 6. Edge features for geometric boards (#8) — cube coordinates now exist, so this is mostly plumbing
 7. Port variant game rules to Rust (#5), verified by the conformance harness
 8. Port the remaining board types (polygonal, sierpinsky, trihexagonal, sunflower, custom) — grid, circular and gridWithHoles are done
-9. Adapter that joins games on govariants.com as a named bot account
+9. ~~Adapter that joins games on govariants.com as a named bot account~~ ✅
 10. Serving integration with govariants (#6)
