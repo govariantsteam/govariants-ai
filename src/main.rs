@@ -130,6 +130,12 @@ struct MatchArgs {
     #[arg(long)]
     opponent_simulations: Option<usize>,
 
+    /// Rollouts per evaluation for the opponent (defaults to --rollouts).
+    /// Together with --opponent-simulations this allows equal-playout or
+    /// equal-time comparisons between differently tuned engines.
+    #[arg(long)]
+    opponent_rollouts: Option<usize>,
+
     /// Moves at the start played with temperature 1, for variety.
     #[arg(long, default_value_t = 6)]
     opening_randomness: usize,
@@ -220,6 +226,7 @@ fn run_play(args: PlayArgs) {
 fn run_match(args: MatchArgs) {
     let config = args.board.config();
     let opponent_sims = args.opponent_simulations.unwrap_or(args.simulations);
+    let opponent_rollouts = args.opponent_rollouts.unwrap_or(args.rollouts);
 
     let agent_a = Agent::Heuristic {
         simulations: args.simulations,
@@ -229,11 +236,11 @@ fn run_match(args: MatchArgs) {
         "random" => Agent::Random,
         "uniform" => Agent::Uniform {
             simulations: opponent_sims,
-            rollouts: args.rollouts,
+            rollouts: opponent_rollouts,
         },
         "heuristic" => Agent::Heuristic {
             simulations: opponent_sims,
-            rollouts: args.rollouts,
+            rollouts: opponent_rollouts,
         },
         other => {
             eprintln!(

@@ -201,6 +201,84 @@ A regression test for each lives in `src/mcts.rs`; the sign bugs are pinned by a
 | MCTS, 9x9, 200 sims × 5 rollouts | 20 sims/s | 396 sims/s (20x) |
 | One 9x9 search | 10.0s | 0.5s |
 
+## Conformance with govariants
+
+The rules in this repo are a *second* implementation of rules that already
+exist in TypeScript in [govariants](https://github.com/govariantsteam/govariants)
+(`packages/shared/src/variants/`). Two independent implementations of the same
+rules always diverge somewhere, and a divergence is not a cosmetic problem: a
+bot playing on the live server would submit moves the server rejects, or play
+on from a position it has misread.
+
+So ports are verified against real games rather than only against hand-written
+tests:
+
+```bash
+# refresh or extend the corpus (hits the live API, read-only)
+python3 tools/fetch_corpus.py --board-type grid --games 6
+
+# replay it offline
+cargo test --test conformance -- --nocapture
+```
+
+`tools/fetch_corpus.py` downloads finished games and, critically, the board
+after **every round** as the server computed it. `GET /games/:id/state?round=N`
+reports `last_move` for each round, so the full move sequence is recoverable
+for every board type — not just the rectangular boards that SGF export
+supports. Boards are stored as glyph strings, which keeps a 199-round 19x19
+game under 90 KB instead of 637 KB.
+
+The harness replays each game move by move and compares the board and both
+capture counts at every round. Current corpus: **5 games, 489 rounds, 80
+captures**, all matching.
+
+A conformance test that cannot fail is worthless, so it is mutation-checked:
+transposing the coordinate decode makes all five games fail by round 2.
+
+### Board types
+
+Only `grid` is implemented here so far. Across baduk games on the live server
+the real distribution is roughly:
+
+| Board type | Games seen | Implemented |
+|---|---|---|
+| grid | 128 | yes |
+| circular | 62 | no |
+| gridWithHoles | 61 | no |
+| polygonal | 14 | no |
+| sierpinsky | 12 | no |
+| trihexagonal | 8 | no |
+| sunflower | 6 | no |
+| custom | 6 | no |
+
+Grid is only about 37% of real games, so the graph topologies are the majority
+of the work, not an exotic afterthought. govariants' `boardFactory.ts` and its
+helpers are the reference; unsupported board types are reported as skipped by
+the harness rather than silently passing.
+
+## Playing on govariants.com
+
+A bot needs no server-side support — it is an ordinary API client:
+
+| Step | Endpoint |
+|---|---|
+| Register the bot account | `POST /api/register` |
+| Log in | `POST /api/login` |
+| Fetch the CSRF token | `GET /api/checkLogin` -> `{user, csrf_token}` |
+| Find open games | `GET /api/games?variant=…&count=&offset=` |
+| Take a seat | `POST /api/games/:id/sit/:seat` |
+| Read the position | `GET /api/games/:id/state/initial`, `…/state?round=&seat=` |
+| Play | `POST /api/games/:id/move`, body `{"<seat>": "<move>"}` |
+
+Auth is a session cookie plus a `CSRF-Token` header. Live updates arrive over
+Socket.IO on `game/:id`, `game/:id/seats` and `game/:id/:seat` (the last
+carries hidden state and the server checks seat occupancy, which is how
+Phantom Go would work).
+
+Use a **full password login with an obviously-named account**, not a guest
+session, so it is clear a bot is playing. There is no `bot` user role yet — the
+`UserRole` type is `"admin"` only — so the username is the disclosure.
+
 ## Training data format
 
 Self-play writes `.bin` files to `data/` (one per game). Format is custom binary (`GVAI`), little-endian:
@@ -269,5 +347,7 @@ See [open issues](https://github.com/govariantsteam/govariants-ai/issues) for th
 4. Full training loop integration (#3)
 5. Train and validate model on mixed topologies (#4)
 6. Edge features for geometric boards (#8) — cube coordinates now exist, so this is mostly plumbing
-7. Port variant game rules to Rust (#5)
-8. Serving integration with govariants (#6)
+7. Port variant game rules to Rust (#5), verified by the conformance harness
+8. Port the remaining board types (circular, gridWithHoles, polygonal, sierpinsky, trihexagonal, sunflower)
+9. Adapter that joins games on govariants.com as a named bot account
+10. Serving integration with govariants (#6)

@@ -1,0 +1,1568 @@
+{
+ "id": "65f09825d40266c8bba9500f",
+ "variant": "baduk",
+ "config": {
+  "width": 9,
+  "height": 9,
+  "komi": 0,
+  "time_control": {
+   "type": 2,
+   "mainTimeMS": 180000,
+   "incrementMS": 1000,
+   "maxTimeMS": null
+  },
+  "board": {
+   "type": "grid",
+   "width": 9,
+   "height": 9
+  }
+ },
+ "result": "B+T",
+ "phase": "gameover",
+ "total_rounds": 69,
+ "special_moves": {
+  "pass": "Pass",
+  "resign": "Resign"
+ },
+ "rounds": [
+  {
+   "round": 0,
+   "last_move": "",
+   "board": [
+    ".........",
+    ".........",
+    ".........",
+    ".........",
+    ".........",
+    ".........",
+    ".........",
+    ".........",
+    "........."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 1,
+   "last_move": "ee",
+   "board": [
+    ".........",
+    ".........",
+    ".........",
+    ".........",
+    "....X....",
+    ".........",
+    ".........",
+    ".........",
+    "........."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 2,
+   "last_move": "fe",
+   "board": [
+    ".........",
+    ".........",
+    ".........",
+    ".........",
+    "....XO...",
+    ".........",
+    ".........",
+    ".........",
+    "........."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 3,
+   "last_move": "ed",
+   "board": [
+    ".........",
+    ".........",
+    ".........",
+    "....X....",
+    "....XO...",
+    ".........",
+    ".........",
+    ".........",
+    "........."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 4,
+   "last_move": "fd",
+   "board": [
+    ".........",
+    ".........",
+    ".........",
+    "....XO...",
+    "....XO...",
+    ".........",
+    ".........",
+    ".........",
+    "........."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 5,
+   "last_move": "ef",
+   "board": [
+    ".........",
+    ".........",
+    ".........",
+    "....XO...",
+    "....XO...",
+    "....X....",
+    ".........",
+    ".........",
+    "........."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 6,
+   "last_move": "ff",
+   "board": [
+    ".........",
+    ".........",
+    ".........",
+    "....XO...",
+    "....XO...",
+    "....XO...",
+    ".........",
+    ".........",
+    "........."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 7,
+   "last_move": "ec",
+   "board": [
+    ".........",
+    ".........",
+    "....X....",
+    "....XO...",
+    "....XO...",
+    "....XO...",
+    ".........",
+    ".........",
+    "........."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 8,
+   "last_move": "fc",
+   "board": [
+    ".........",
+    ".........",
+    "....XO...",
+    "....XO...",
+    "....XO...",
+    "....XO...",
+    ".........",
+    ".........",
+    "........."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 9,
+   "last_move": "eb",
+   "board": [
+    ".........",
+    "....X....",
+    "....XO...",
+    "....XO...",
+    "....XO...",
+    "....XO...",
+    ".........",
+    ".........",
+    "........."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 10,
+   "last_move": "fg",
+   "board": [
+    ".........",
+    "....X....",
+    "....XO...",
+    "....XO...",
+    "....XO...",
+    "....XO...",
+    ".....O...",
+    ".........",
+    "........."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 11,
+   "last_move": "eg",
+   "board": [
+    ".........",
+    "....X....",
+    "....XO...",
+    "....XO...",
+    "....XO...",
+    "....XO...",
+    "....XO...",
+    ".........",
+    "........."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 12,
+   "last_move": "eh",
+   "board": [
+    ".........",
+    "....X....",
+    "....XO...",
+    "....XO...",
+    "....XO...",
+    "....XO...",
+    "....XO...",
+    "....O....",
+    "........."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 13,
+   "last_move": "dg",
+   "board": [
+    ".........",
+    "....X....",
+    "....XO...",
+    "....XO...",
+    "....XO...",
+    "....XO...",
+    "...XXO...",
+    "....O....",
+    "........."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 14,
+   "last_move": "fh",
+   "board": [
+    ".........",
+    "....X....",
+    "....XO...",
+    "....XO...",
+    "....XO...",
+    "....XO...",
+    "...XXO...",
+    "....OO...",
+    "........."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 15,
+   "last_move": "dh",
+   "board": [
+    ".........",
+    "....X....",
+    "....XO...",
+    "....XO...",
+    "....XO...",
+    "....XO...",
+    "...XXO...",
+    "...XOO...",
+    "........."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 16,
+   "last_move": "ei",
+   "board": [
+    ".........",
+    "....X....",
+    "....XO...",
+    "....XO...",
+    "....XO...",
+    "....XO...",
+    "...XXO...",
+    "...XOO...",
+    "....O...."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 17,
+   "last_move": "fb",
+   "board": [
+    ".........",
+    "....XX...",
+    "....XO...",
+    "....XO...",
+    "....XO...",
+    "....XO...",
+    "...XXO...",
+    "...XOO...",
+    "....O...."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 18,
+   "last_move": "di",
+   "board": [
+    ".........",
+    "....XX...",
+    "....XO...",
+    "....XO...",
+    "....XO...",
+    "....XO...",
+    "...XXO...",
+    "...XOO...",
+    "...OO...."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 19,
+   "last_move": "ch",
+   "board": [
+    ".........",
+    "....XX...",
+    "....XO...",
+    "....XO...",
+    "....XO...",
+    "....XO...",
+    "...XXO...",
+    "..XXOO...",
+    "...OO...."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 20,
+   "last_move": "ci",
+   "board": [
+    ".........",
+    "....XX...",
+    "....XO...",
+    "....XO...",
+    "....XO...",
+    "....XO...",
+    "...XXO...",
+    "..XXOO...",
+    "..OOO...."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 21,
+   "last_move": "gb",
+   "board": [
+    ".........",
+    "....XXX..",
+    "....XO...",
+    "....XO...",
+    "....XO...",
+    "....XO...",
+    "...XXO...",
+    "..XXOO...",
+    "..OOO...."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 22,
+   "last_move": "bi",
+   "board": [
+    ".........",
+    "....XXX..",
+    "....XO...",
+    "....XO...",
+    "....XO...",
+    "....XO...",
+    "...XXO...",
+    "..XXOO...",
+    ".OOOO...."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 23,
+   "last_move": "bh",
+   "board": [
+    ".........",
+    "....XXX..",
+    "....XO...",
+    "....XO...",
+    "....XO...",
+    "....XO...",
+    "...XXO...",
+    ".XXXOO...",
+    ".OOOO...."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 24,
+   "last_move": "gc",
+   "board": [
+    ".........",
+    "....XXX..",
+    "....XOO..",
+    "....XO...",
+    "....XO...",
+    "....XO...",
+    "...XXO...",
+    ".XXXOO...",
+    ".OOOO...."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 25,
+   "last_move": "hb",
+   "board": [
+    ".........",
+    "....XXXX.",
+    "....XOO..",
+    "....XO...",
+    "....XO...",
+    "....XO...",
+    "...XXO...",
+    ".XXXOO...",
+    ".OOOO...."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 26,
+   "last_move": "ah",
+   "board": [
+    ".........",
+    "....XXXX.",
+    "....XOO..",
+    "....XO...",
+    "....XO...",
+    "....XO...",
+    "...XXO...",
+    "OXXXOO...",
+    ".OOOO...."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 27,
+   "last_move": "ag",
+   "board": [
+    ".........",
+    "....XXXX.",
+    "....XOO..",
+    "....XO...",
+    "....XO...",
+    "....XO...",
+    "X..XXO...",
+    "OXXXOO...",
+    ".OOOO...."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 28,
+   "last_move": "ai",
+   "board": [
+    ".........",
+    "....XXXX.",
+    "....XOO..",
+    "....XO...",
+    "....XO...",
+    "....XO...",
+    "X..XXO...",
+    "OXXXOO...",
+    "OOOOO...."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 29,
+   "last_move": "bg",
+   "board": [
+    ".........",
+    "....XXXX.",
+    "....XOO..",
+    "....XO...",
+    "....XO...",
+    "....XO...",
+    "XX.XXO...",
+    "OXXXOO...",
+    "OOOOO...."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 30,
+   "last_move": "hc",
+   "board": [
+    ".........",
+    "....XXXX.",
+    "....XOOO.",
+    "....XO...",
+    "....XO...",
+    "....XO...",
+    "XX.XXO...",
+    "OXXXOO...",
+    "OOOOO...."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 31,
+   "last_move": "ib",
+   "board": [
+    ".........",
+    "....XXXXX",
+    "....XOOO.",
+    "....XO...",
+    "....XO...",
+    "....XO...",
+    "XX.XXO...",
+    "OXXXOO...",
+    "OOOOO...."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 32,
+   "last_move": "ic",
+   "board": [
+    ".........",
+    "....XXXXX",
+    "....XOOOO",
+    "....XO...",
+    "....XO...",
+    "....XO...",
+    "XX.XXO...",
+    "OXXXOO...",
+    "OOOOO...."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 33,
+   "last_move": "ha",
+   "board": [
+    ".......X.",
+    "....XXXXX",
+    "....XOOOO",
+    "....XO...",
+    "....XO...",
+    "....XO...",
+    "XX.XXO...",
+    "OXXXOO...",
+    "OOOOO...."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 34,
+   "last_move": "id",
+   "board": [
+    ".......X.",
+    "....XXXXX",
+    "....XOOOO",
+    "....XO..O",
+    "....XO...",
+    "....XO...",
+    "XX.XXO...",
+    "OXXXOO...",
+    "OOOOO...."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 35,
+   "last_move": "fa",
+   "board": [
+    ".....X.X.",
+    "....XXXXX",
+    "....XOOOO",
+    "....XO..O",
+    "....XO...",
+    "....XO...",
+    "XX.XXO...",
+    "OXXXOO...",
+    "OOOOO...."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 36,
+   "last_move": "hd",
+   "board": [
+    ".....X.X.",
+    "....XXXXX",
+    "....XOOOO",
+    "....XO.OO",
+    "....XO...",
+    "....XO...",
+    "XX.XXO...",
+    "OXXXOO...",
+    "OOOOO...."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 37,
+   "last_move": "de",
+   "board": [
+    ".....X.X.",
+    "....XXXXX",
+    "....XOOOO",
+    "....XO.OO",
+    "...XXO...",
+    "....XO...",
+    "XX.XXO...",
+    "OXXXOO...",
+    "OOOOO...."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 38,
+   "last_move": "gd",
+   "board": [
+    ".....X.X.",
+    "....XXXXX",
+    "....XOOOO",
+    "....XOOOO",
+    "...XXO...",
+    "....XO...",
+    "XX.XXO...",
+    "OXXXOO...",
+    "OOOOO...."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 39,
+   "last_move": "ce",
+   "board": [
+    ".....X.X.",
+    "....XXXXX",
+    "....XOOOO",
+    "....XOOOO",
+    "..XXXO...",
+    "....XO...",
+    "XX.XXO...",
+    "OXXXOO...",
+    "OOOOO...."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 40,
+   "last_move": "ge",
+   "board": [
+    ".....X.X.",
+    "....XXXXX",
+    "....XOOOO",
+    "....XOOOO",
+    "..XXXOO..",
+    "....XO...",
+    "XX.XXO...",
+    "OXXXOO...",
+    "OOOOO...."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 41,
+   "last_move": "be",
+   "board": [
+    ".....X.X.",
+    "....XXXXX",
+    "....XOOOO",
+    "....XOOOO",
+    ".XXXXOO..",
+    "....XO...",
+    "XX.XXO...",
+    "OXXXOO...",
+    "OOOOO...."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 42,
+   "last_move": "he",
+   "board": [
+    ".....X.X.",
+    "....XXXXX",
+    "....XOOOO",
+    "....XOOOO",
+    ".XXXXOOO.",
+    "....XO...",
+    "XX.XXO...",
+    "OXXXOO...",
+    "OOOOO...."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 43,
+   "last_move": "ae",
+   "board": [
+    ".....X.X.",
+    "....XXXXX",
+    "....XOOOO",
+    "....XOOOO",
+    "XXXXXOOO.",
+    "....XO...",
+    "XX.XXO...",
+    "OXXXOO...",
+    "OOOOO...."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 44,
+   "last_move": "ie",
+   "board": [
+    ".....X.X.",
+    "....XXXXX",
+    "....XOOOO",
+    "....XOOOO",
+    "XXXXXOOOO",
+    "....XO...",
+    "XX.XXO...",
+    "OXXXOO...",
+    "OOOOO...."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 45,
+   "last_move": "ad",
+   "board": [
+    ".....X.X.",
+    "....XXXXX",
+    "....XOOOO",
+    "X...XOOOO",
+    "XXXXXOOOO",
+    "....XO...",
+    "XX.XXO...",
+    "OXXXOO...",
+    "OOOOO...."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 46,
+   "last_move": "gf",
+   "board": [
+    ".....X.X.",
+    "....XXXXX",
+    "....XOOOO",
+    "X...XOOOO",
+    "XXXXXOOOO",
+    "....XOO..",
+    "XX.XXO...",
+    "OXXXOO...",
+    "OOOOO...."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 47,
+   "last_move": "bd",
+   "board": [
+    ".....X.X.",
+    "....XXXXX",
+    "....XOOOO",
+    "XX..XOOOO",
+    "XXXXXOOOO",
+    "....XOO..",
+    "XX.XXO...",
+    "OXXXOO...",
+    "OOOOO...."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 48,
+   "last_move": "hf",
+   "board": [
+    ".....X.X.",
+    "....XXXXX",
+    "....XOOOO",
+    "XX..XOOOO",
+    "XXXXXOOOO",
+    "....XOOO.",
+    "XX.XXO...",
+    "OXXXOO...",
+    "OOOOO...."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 49,
+   "last_move": "cd",
+   "board": [
+    ".....X.X.",
+    "....XXXXX",
+    "....XOOOO",
+    "XXX.XOOOO",
+    "XXXXXOOOO",
+    "....XOOO.",
+    "XX.XXO...",
+    "OXXXOO...",
+    "OOOOO...."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 50,
+   "last_move": "if",
+   "board": [
+    ".....X.X.",
+    "....XXXXX",
+    "....XOOOO",
+    "XXX.XOOOO",
+    "XXXXXOOOO",
+    "....XOOOO",
+    "XX.XXO...",
+    "OXXXOO...",
+    "OOOOO...."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 51,
+   "last_move": "dd",
+   "board": [
+    ".....X.X.",
+    "....XXXXX",
+    "....XOOOO",
+    "XXXXXOOOO",
+    "XXXXXOOOO",
+    "....XOOOO",
+    "XX.XXO...",
+    "OXXXOO...",
+    "OOOOO...."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 52,
+   "last_move": "gg",
+   "board": [
+    ".....X.X.",
+    "....XXXXX",
+    "....XOOOO",
+    "XXXXXOOOO",
+    "XXXXXOOOO",
+    "....XOOOO",
+    "XX.XXOO..",
+    "OXXXOO...",
+    "OOOOO...."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 53,
+   "last_move": "dc",
+   "board": [
+    ".....X.X.",
+    "....XXXXX",
+    "...XXOOOO",
+    "XXXXXOOOO",
+    "XXXXXOOOO",
+    "....XOOOO",
+    "XX.XXOO..",
+    "OXXXOO...",
+    "OOOOO...."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 54,
+   "last_move": "hg",
+   "board": [
+    ".....X.X.",
+    "....XXXXX",
+    "...XXOOOO",
+    "XXXXXOOOO",
+    "XXXXXOOOO",
+    "....XOOOO",
+    "XX.XXOOO.",
+    "OXXXOO...",
+    "OOOOO...."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 55,
+   "last_move": "cc",
+   "board": [
+    ".....X.X.",
+    "....XXXXX",
+    "..XXXOOOO",
+    "XXXXXOOOO",
+    "XXXXXOOOO",
+    "....XOOOO",
+    "XX.XXOOO.",
+    "OXXXOO...",
+    "OOOOO...."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 56,
+   "last_move": "ig",
+   "board": [
+    ".....X.X.",
+    "....XXXXX",
+    "..XXXOOOO",
+    "XXXXXOOOO",
+    "XXXXXOOOO",
+    "....XOOOO",
+    "XX.XXOOOO",
+    "OXXXOO...",
+    "OOOOO...."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 57,
+   "last_move": "bc",
+   "board": [
+    ".....X.X.",
+    "....XXXXX",
+    ".XXXXOOOO",
+    "XXXXXOOOO",
+    "XXXXXOOOO",
+    "....XOOOO",
+    "XX.XXOOOO",
+    "OXXXOO...",
+    "OOOOO...."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 58,
+   "last_move": "ih",
+   "board": [
+    ".....X.X.",
+    "....XXXXX",
+    ".XXXXOOOO",
+    "XXXXXOOOO",
+    "XXXXXOOOO",
+    "....XOOOO",
+    "XX.XXOOOO",
+    "OXXXOO..O",
+    "OOOOO...."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 59,
+   "last_move": "ac",
+   "board": [
+    ".....X.X.",
+    "....XXXXX",
+    "XXXXXOOOO",
+    "XXXXXOOOO",
+    "XXXXXOOOO",
+    "....XOOOO",
+    "XX.XXOOOO",
+    "OXXXOO..O",
+    "OOOOO...."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 60,
+   "last_move": "hh",
+   "board": [
+    ".....X.X.",
+    "....XXXXX",
+    "XXXXXOOOO",
+    "XXXXXOOOO",
+    "XXXXXOOOO",
+    "....XOOOO",
+    "XX.XXOOOO",
+    "OXXXOO.OO",
+    "OOOOO...."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 61,
+   "last_move": "db",
+   "board": [
+    ".....X.X.",
+    "...XXXXXX",
+    "XXXXXOOOO",
+    "XXXXXOOOO",
+    "XXXXXOOOO",
+    "....XOOOO",
+    "XX.XXOOOO",
+    "OXXXOO.OO",
+    "OOOOO...."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 62,
+   "last_move": "gh",
+   "board": [
+    ".....X.X.",
+    "...XXXXXX",
+    "XXXXXOOOO",
+    "XXXXXOOOO",
+    "XXXXXOOOO",
+    "....XOOOO",
+    "XX.XXOOOO",
+    "OXXXOOOOO",
+    "OOOOO...."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 63,
+   "last_move": "cb",
+   "board": [
+    ".....X.X.",
+    "..XXXXXXX",
+    "XXXXXOOOO",
+    "XXXXXOOOO",
+    "XXXXXOOOO",
+    "....XOOOO",
+    "XX.XXOOOO",
+    "OXXXOOOOO",
+    "OOOOO...."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 64,
+   "last_move": "fi",
+   "board": [
+    ".....X.X.",
+    "..XXXXXXX",
+    "XXXXXOOOO",
+    "XXXXXOOOO",
+    "XXXXXOOOO",
+    "....XOOOO",
+    "XX.XXOOOO",
+    "OXXXOOOOO",
+    "OOOOOO..."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 65,
+   "last_move": "bb",
+   "board": [
+    ".....X.X.",
+    ".XXXXXXXX",
+    "XXXXXOOOO",
+    "XXXXXOOOO",
+    "XXXXXOOOO",
+    "....XOOOO",
+    "XX.XXOOOO",
+    "OXXXOOOOO",
+    "OOOOOO..."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 66,
+   "last_move": "gi",
+   "board": [
+    ".....X.X.",
+    ".XXXXXXXX",
+    "XXXXXOOOO",
+    "XXXXXOOOO",
+    "XXXXXOOOO",
+    "....XOOOO",
+    "XX.XXOOOO",
+    "OXXXOOOOO",
+    "OOOOOOO.."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 67,
+   "last_move": "ab",
+   "board": [
+    ".....X.X.",
+    "XXXXXXXXX",
+    "XXXXXOOOO",
+    "XXXXXOOOO",
+    "XXXXXOOOO",
+    "....XOOOO",
+    "XX.XXOOOO",
+    "OXXXOOOOO",
+    "OOOOOOO.."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 68,
+   "last_move": "ii",
+   "board": [
+    ".....X.X.",
+    "XXXXXXXXX",
+    "XXXXXOOOO",
+    "XXXXXOOOO",
+    "XXXXXOOOO",
+    "....XOOOO",
+    "XX.XXOOOO",
+    "OXXXOOOOO",
+    "OOOOOOO.O"
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 69,
+   "last_move": "hi",
+   "board": [
+    ".....X.X.",
+    "XXXXXXXXX",
+    "XXXXX....",
+    "XXXXX....",
+    "XXXXX....",
+    "....X....",
+    "XX.XX....",
+    ".XXX.....",
+    ".......X."
+   ],
+   "captures": {
+    "0": 34,
+    "1": 0
+   },
+   "next_to_play": []
+  }
+ ],
+ "glyphs": ".XO#*+"
+}

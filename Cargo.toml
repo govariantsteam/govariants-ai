@@ -8,3 +8,7 @@ rand = "0.9"
 rand_distr = "0.5"
 rayon = "1.10"
 clap = { version = "4", features = ["derive"] }
+
+[dev-dependencies]
+# Only the conformance corpus needs JSON; the engine itself stays dependency-light.
+serde_json = "1"
