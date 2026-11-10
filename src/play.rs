@@ -156,13 +156,13 @@ Commands:
 /// Interactive game against an agent. Returns when the game ends or the human
 /// quits.
 pub fn interactive(
-    config: BadukConfig,
+    config: &BadukConfig,
     bot: Agent,
     human_player: usize,
     input: &mut dyn BufRead,
     out: &mut dyn Write,
 ) -> std::io::Result<()> {
-    let mut game = Baduk::new(config);
+    let mut game = Baduk::new(config.clone());
     let human_color = if human_player == 0 { "black (X)" } else { "white (O)" };
 
     writeln!(
@@ -331,13 +331,13 @@ impl MatchResult {
 /// Play one game between two agents. `a_plays_black` decides the colors.
 /// `opening_randomness` moves are played at temperature 1 for variety.
 pub fn play_game(
-    config: BadukConfig,
+    config: &BadukConfig,
     agent_a: Agent,
     agent_b: Agent,
     a_plays_black: bool,
     opening_randomness: usize,
 ) -> i32 {
-    let mut game = Baduk::new(config);
+    let mut game = Baduk::new(config.clone());
     let max_moves = game.num_nodes() * 3;
     let mut played = 0;
 
@@ -366,7 +366,7 @@ pub fn play_game(
 
 /// Play `games` games with alternating colors and tally the result.
 pub fn play_match(
-    config: BadukConfig,
+    config: &BadukConfig,
     agent_a: Agent,
     agent_b: Agent,
     games: usize,
@@ -485,7 +485,7 @@ mod tests {
         let mut input = Cursor::new(script.as_bytes());
         let mut output: Vec<u8> = Vec::new();
         interactive(
-            config,
+            &config,
             Agent::Random,
             0,
             &mut input,
@@ -505,7 +505,7 @@ mod tests {
         let script = "C3\nC3\nquit\n";
         let mut input = Cursor::new(script.as_bytes());
         let mut output: Vec<u8> = Vec::new();
-        interactive(config, Agent::Random, 0, &mut input, &mut output).unwrap();
+        interactive(&config, Agent::Random, 0, &mut input, &mut output).unwrap();
         let text = String::from_utf8(output).unwrap();
         assert!(text.contains("not a legal move"));
     }
@@ -514,7 +514,7 @@ mod tests {
     fn a_full_game_finishes_and_is_scored() {
         let config = BadukConfig::grid(5, 5, 0.5);
         let outcome = play_game(
-            config,
+            &config,
             Agent::Heuristic {
                 simulations: 40,
                 rollouts: 2,

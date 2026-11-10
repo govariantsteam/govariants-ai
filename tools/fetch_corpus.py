@@ -63,7 +63,9 @@ def fetch(base, path, raw=False, timeout=25):
         raise RuntimeError(f"bad JSON from {path}: {exc}") from exc
 
 
-def list_candidates(base, variant, board_type, min_rounds, pages, per_page):
+def list_candidates(
+    base, variant, board_type, min_rounds, pages, per_page, require_finished=True
+):
     seen = []
     for offset in range(0, pages * per_page, per_page):
         games = fetch(
@@ -126,6 +128,15 @@ def main():
     parser.add_argument("--games", type=int, default=6, help="how many to keep")
     parser.add_argument("--min-rounds", type=int, default=15)
     parser.add_argument("--pages", type=int, default=4)
+    parser.add_argument(
+        "--game-id",
+        help="fetch exactly this game, ignoring the search filters",
+    )
+    parser.add_argument(
+        "--include-unfinished",
+        action="store_true",
+        help="also accept games still in progress (valid up to the last move played)",
+    )
     parser.add_argument("--per-page", type=int, default=100)
     parser.add_argument(
         "--out",
@@ -138,6 +149,19 @@ def main():
         f"searching {args.base} for finished {args.variant} games "
         f"on {args.board_type} boards with >= {args.min_rounds} rounds..."
     )
+    if args.game_id:
+        print(f"  fetching requested game {args.game_id}")
+        record = fetch_game(args.base, args.game_id)
+        board_type = ((record.get("config") or {}).get("board") or {}).get(
+            "type", "unknown"
+        )
+        out_dir = pathlib.Path(args.out)
+        out_dir.mkdir(parents=True, exist_ok=True)
+        path = out_dir / f"{record['variant']}-{board_type}-{args.game_id}.json"
+        path.write_text(json.dumps(record, indent=1))
+        print(f"  wrote {path} ({path.stat().st_size // 1024} KB)")
+        return 0
+
     candidates = list_candidates(
         args.base,
         args.variant,
@@ -145,6 +169,7 @@ def main():
         args.min_rounds,
         args.pages,
         args.per_page,
+        require_finished=not args.include_unfinished,
     )
     print(f"  {len(candidates)} candidates")
     if not candidates:

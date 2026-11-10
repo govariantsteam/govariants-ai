@@ -131,7 +131,7 @@ fn main() {
 
     for topology in boards {
         let game = Baduk::new(BadukConfig {
-            topology,
+            topology: topology.clone(),
             komi: 6.5,
         });
         let (rate, _) = raw_playouts(&game);

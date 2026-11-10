@@ -324,7 +324,7 @@ mod tests {
 
         let config = BadukConfig::grid(5, 5, 0.5);
         let result = play_match(
-            config,
+            &config,
             Agent::Heuristic {
                 simulations: 80,
                 rollouts: 2,

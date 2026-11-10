@@ -50,9 +50,42 @@ fn topology_from_config(board: &Value) -> Result<Topology, String> {
                 .ok_or("grid board has no height")? as usize;
             Ok(Topology::Grid { width, height })
         }
-        // circular, gridWithHoles, polygonal, sierpinsky, trihexagonal,
-        // sunflower and custom all exist on the live server and are not
-        // implemented here yet. See govariants' boardFactory and its helpers.
+        "circular" => {
+            let rings = board
+                .get("rings")
+                .and_then(Value::as_u64)
+                .ok_or("circular board has no rings")? as usize;
+            let nodes_per_ring = board
+                .get("nodesPerRing")
+                .and_then(Value::as_u64)
+                .ok_or("circular board has no nodesPerRing")? as usize;
+            Ok(Topology::Circular {
+                rings,
+                nodes_per_ring,
+            })
+        }
+        "gridWithHoles" => {
+            let rows = board
+                .get("bitmap")
+                .and_then(Value::as_array)
+                .ok_or("gridWithHoles board has no bitmap")?;
+            let bitmap = rows
+                .iter()
+                .map(|row| {
+                    row.as_array()
+                        .ok_or("bitmap row is not an array")
+                        .map(|cells| {
+                            cells
+                                .iter()
+                                .map(|c| c.as_u64().unwrap_or(0) as u8)
+                                .collect::<Vec<u8>>()
+                        })
+                })
+                .collect::<Result<Vec<Vec<u8>>, &str>>()?;
+            Ok(Topology::GridWithHoles { bitmap })
+        }
+        // polygonal, sierpinsky, trihexagonal, sunflower and custom also
+        // exist on the live server. See govariants' boardFactory and helpers.
         other => Err(format!("board type '{}' not implemented", other)),
     }
 }
@@ -71,24 +104,44 @@ fn decode_grid_move(text: &str, width: usize, height: usize) -> Result<usize, St
     Ok(y * width + x)
 }
 
+/// Graph boards encode a move as the decimal node index.
+fn decode_index_move(text: &str, num_nodes: usize) -> Result<usize, String> {
+    let node: usize = text
+        .parse()
+        .map_err(|_| format!("expected a node index, got '{}'", text))?;
+    if node >= num_nodes {
+        return Err(format!("node {} is outside a {}-node board", node, num_nodes));
+    }
+    Ok(node)
+}
+
 /// Our board, rendered the way the corpus stores it.
-fn render_rows(game: &Baduk, width: usize, height: usize) -> Vec<String> {
+fn glyph(color: Color) -> char {
+    match color {
+        Color::Empty => '.',
+        Color::Black => 'X',
+        Color::White => 'O',
+    }
+}
+
+fn render_rows(game: &Baduk, grid: Option<(usize, usize)>) -> Vec<String> {
     let stones = game.stones();
-    (0..height)
-        .map(|y| {
-            (0..width)
-                .map(|x| match stones[y * width + x] {
-                    Color::Empty => '.',
-                    Color::Black => 'X',
-                    Color::White => 'O',
-                })
-                .collect()
-        })
-        .collect()
+    match grid {
+        Some((width, height)) => (0..height)
+            .map(|y| (0..width).map(|x| glyph(stones[y * width + x])).collect())
+            .collect(),
+        // Graph boards serialize as one flat array in node order.
+        None => vec![stones.iter().map(|&c| glyph(c)).collect()],
+    }
 }
 
 fn expected_rows(board: &Value) -> Result<Vec<String>, String> {
-    let rows = board.as_array().ok_or("round board is not an array")?;
+    if let Some(flat) = board.as_str() {
+        return Ok(vec![flat.to_string()]);
+    }
+    let rows = board
+        .as_array()
+        .ok_or("round board is neither a string nor an array")?;
     rows.iter()
         .map(|row| {
             row.as_str()
@@ -135,13 +188,19 @@ fn replay(path: &Path) -> Result<usize, Divergence> {
         Ok(t) => t,
         Err(reason) => return Err(fail(0, format!("unsupported board: {}", reason))),
     };
-    let (width, height) = match topology {
-        Topology::Grid { width, height } => (width, height),
-        _ => return Err(fail(0, "only grid boards are replayable so far".into())),
+    // Grids are addressed as SGF coordinates in a 2D board; every other
+    // topology is a flat node list addressed by index.
+    let grid = match &topology {
+        Topology::Grid { width, height } => Some((*width, *height)),
+        _ => None,
     };
+    let num_nodes = topology.num_nodes();
     let komi = config.get("komi").and_then(Value::as_f64).unwrap_or(6.5) as f32;
 
-    let mut game = Baduk::new(BadukConfig { topology, komi });
+    let mut game = Baduk::new(BadukConfig {
+        topology: topology.clone(),
+        komi,
+    });
     let mut scratch: Scratch = game.new_scratch();
 
     let rounds = record
@@ -177,7 +236,11 @@ fn replay(path: &Path) -> Result<usize, Divergence> {
                     }
                 }
                 other => {
-                    let node = match decode_grid_move(other, width, height) {
+                    let decoded = match grid {
+                        Some((width, height)) => decode_grid_move(other, width, height),
+                        None => decode_index_move(other, num_nodes),
+                    };
+                    let node = match decoded {
                         Ok(n) => n,
                         Err(reason) => return Err(fail(index, reason)),
                     };
@@ -211,7 +274,7 @@ fn replay(path: &Path) -> Result<usize, Divergence> {
             Ok(rows) => rows,
             Err(reason) => return Err(fail(index, reason)),
         };
-        let actual = render_rows(&game, width, height);
+        let actual = render_rows(&game, grid);
         if expected != actual {
             return Err(fail(
                 index,

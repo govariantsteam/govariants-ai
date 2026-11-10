@@ -1,0 +1,861 @@
+{
+ "id": "677e053b13b76f624962038c",
+ "variant": "baduk",
+ "config": {
+  "komi": -9.1186,
+  "board": {
+   "type": "circular",
+   "rings": 9,
+   "nodesPerRing": 9
+  },
+  "time_control": null
+ },
+ "result": "B+11.1186",
+ "phase": "gameover",
+ "total_rounds": 59,
+ "special_moves": {
+  "pass": "Pass",
+  "resign": "Resign"
+ },
+ "glyphs": ".XO#*+",
+ "rounds": [
+  {
+   "round": 0,
+   "last_move": "",
+   "board": [
+    "................................................................................."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 1,
+   "last_move": "47",
+   "board": [
+    "...............................................X................................."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 2,
+   "last_move": "30",
+   "board": [
+    "..............................O................X................................."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 3,
+   "last_move": "38",
+   "board": [
+    "..............................O.......X........X................................."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 4,
+   "last_move": "39",
+   "board": [
+    "..............................O.......XO.......X................................."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 5,
+   "last_move": "21",
+   "board": [
+    ".....................X........O.......XO.......X................................."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 6,
+   "last_move": "13",
+   "board": [
+    ".............O.......X........O.......XO.......X................................."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 7,
+   "last_move": "4",
+   "board": [
+    "....X........O.......X........O.......XO.......X................................."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 8,
+   "last_move": "5",
+   "board": [
+    "....XO.......O.......X........O.......XO.......X................................."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 9,
+   "last_move": "56",
+   "board": [
+    "....XO.......O.......X........O.......XO.......X........X........................"
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 10,
+   "last_move": "48",
+   "board": [
+    "....XO.......O.......X........O.......XO.......XO.......X........................"
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 11,
+   "last_move": "65",
+   "board": [
+    "....XO.......O.......X........O.......XO.......XO.......X........X..............."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 12,
+   "last_move": "57",
+   "board": [
+    "....XO.......O.......X........O.......XO.......XO.......XO.......X..............."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 13,
+   "last_move": "74",
+   "board": [
+    "....XO.......O.......X........O.......XO.......XO.......XO.......X........X......"
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 14,
+   "last_move": "66",
+   "board": [
+    "....XO.......O.......X........O.......XO.......XO.......XO.......XO.......X......"
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 15,
+   "last_move": "75",
+   "board": [
+    "....XO.......O.......X........O.......XO.......XO.......XO.......XO.......XX....."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 16,
+   "last_move": "67",
+   "board": [
+    "....XO.......O.......X........O.......XO.......XO.......XO.......XOO......XX....."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 17,
+   "last_move": "51",
+   "board": [
+    "....XO.......O.......X........O.......XO.......XO..X....XO.......XOO......XX....."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 18,
+   "last_move": "59",
+   "board": [
+    "....XO.......O.......X........O.......XO.......XO..X....XO.O.....XOO......XX....."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 19,
+   "last_move": "42",
+   "board": [
+    "....XO.......O.......X........O.......XO..X....XO..X....XO.O.....XOO......XX....."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 20,
+   "last_move": "50",
+   "board": [
+    "....XO.......O.......X........O.......XO..X....XO.OX....XO.O.....XOO......XX....."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 21,
+   "last_move": "25",
+   "board": [
+    "....XO.......O.......X...X....O.......XO..X....XO.OX....XO.O.....XOO......XX....."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 22,
+   "last_move": "33",
+   "board": [
+    "....XO.......O.......X...X....O..O....XO..X....XO.OX....XO.O.....XOO......XX....."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 23,
+   "last_move": "16",
+   "board": [
+    "....XO.......O..X....X...X....O..O....XO..X....XO.OX....XO.O.....XOO......XX....."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 24,
+   "last_move": "24",
+   "board": [
+    "....XO.......O..X....X..OX....O..O....XO..X....XO.OX....XO.O.....XOO......XX....."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 25,
+   "last_move": "7",
+   "board": [
+    "....XO.X.....O..X....X..OX....O..O....XO..X....XO.OX....XO.O.....XOO......XX....."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 26,
+   "last_move": "15",
+   "board": [
+    "....XO.X.....O.OX....X..OX....O..O....XO..X....XO.OX....XO.O.....XOO......XX....."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 27,
+   "last_move": "68",
+   "board": [
+    "....XO.X.....O.OX....X..OX....O..O....XO..X....XO.OX....XO.O.....XOOX.....XX....."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 28,
+   "last_move": "76",
+   "board": [
+    "....XO.X.....O.OX....X..OX....O..O....XO..X....XO.OX....XO.O.....XOOX.....XXO...."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 29,
+   "last_move": "77",
+   "board": [
+    "....XO.X.....O.OX....X..OX....O..O....XO..X....XO.OX....XO.O.....XOOX.....XXOX..."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 30,
+   "last_move": "60",
+   "board": [
+    "....XO.X.....O.OX....X..OX....O..O....XO..X....XO.OX....XO.OO....XOOX.....XXOX..."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 31,
+   "last_move": "69",
+   "board": [
+    "....XO.X.....O.OX....X..OX....O..O....XO..X....XO.OX....XO.OO....XOOXX....XXOX..."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 32,
+   "last_move": "43",
+   "board": [
+    "....XO.X.....O.OX....X..OX....O..O....XO..XO...XO.OX....XO.OO....XOOXX....XXOX..."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 33,
+   "last_move": "26",
+   "board": [
+    "....XO.X.....O.OX....X..OXX...O..O....XO..XO...XO.OX....XO.OO....XOOXX....XXOX..."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 34,
+   "last_move": "52",
+   "board": [
+    "....XO.X.....O.OX....X..OXX...O..O....XO..XO...XO.OXO...XO.OO....XOOXX....XXOX..."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 35,
+   "last_move": "61",
+   "board": [
+    "....XO.X.....O.OX....X..OXX...O..O....XO..XO...XO.OXO...XO.OOX...XOOXX....XXOX..."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 36,
+   "last_move": "35",
+   "board": [
+    "....XO.X.....O.OX....X..OXX...O..O.O..XO..XO...XO.OXO...XO.OOX...XOOXX....XXOX..."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 37,
+   "last_move": "9",
+   "board": [
+    "....XO.X.X...O.OX....X..OXX...O..O.O..XO..XO...XO.OXO...XO.OOX...XOOXX....XXOX..."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 38,
+   "last_move": "44",
+   "board": [
+    "....XO.X.X...O.OX....X..OXX...O..O.O..XO..XOO..XO.OXO...XO.OOX...XOOXX....XXOX..."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 39,
+   "last_move": "53",
+   "board": [
+    "....XO.X.X...O.OX....X..OXX...O..O.O..XO..XOO..XO.OXOX..XO.OOX...XOOXX....XXOX..."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 40,
+   "last_move": "78",
+   "board": [
+    "....XO.X.X...O.OX....X..OXX...O..O.O..XO..XOO..XO.OXOX..XO.OOX...XOOXX....XXOXO.."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 41,
+   "last_move": "70",
+   "board": [
+    "....XO.X.X...O.OX....X..OXX...O..O.O..XO..XOO..XO.OXOX..XO.OOX...XOOXXX...XXOXO.."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 42,
+   "last_move": "18",
+   "board": [
+    "....XO.X.X...O.OX.O..X..OXX...O..O.O..XO..XOO..XO.OXOX..XO.OOX...XOOXXX...XXOXO.."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 43,
+   "last_move": "10",
+   "board": [
+    "....XO.X.XX..O.OX.O..X..OXX...O..O.O..XO..XOO..XO.OXOX..XO.OOX...XOOXXX...XXOXO.."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 44,
+   "last_move": "27",
+   "board": [
+    "....XO.X.XX..O.OX.O..X..OXXO..O..O.O..XO..XOO..XO.OXOX..XO.OOX...XOOXXX...XXOXO.."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 45,
+   "last_move": "36",
+   "board": [
+    "....XO.X.XX..O.OX.O..X..OXXO..O..O.OX.XO..XOO..XO.OXOX..XO.OOX...XOOXXX...XXOXO.."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 46,
+   "last_move": "19",
+   "board": [
+    "....XO.X.XX..O.OX.OO.X..OXXO..O..O.OX.XO..XOO..XO.OXOX..XO.OOX...XOOXXX...XXOXO.."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 47,
+   "last_move": "11",
+   "board": [
+    "....XO.X.XXX.O.OX.OO.X..OXXO..O..O.OX.XO..XOO..XO.OXOX..XO.OOX...XOOXXX...XXOXO.."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 48,
+   "last_move": "28",
+   "board": [
+    "....XO.X.XXX.O.OX.OO.X..OXXOO.O..O.OX.XO..XOO..XO.OXOX..XO.OOX...XOOXXX...XXOXO.."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 49,
+   "last_move": "37",
+   "board": [
+    "....XO.X.XXX.O.OX.OO.X..OXXOO.O..O.OXXXO..XOO..XO.OXOX..XO.OOX...XOOXXX...XXOXO.."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 50,
+   "last_move": "45",
+   "board": [
+    "....XO.X.XXX.O.OX.OO.X..OXXOO.O..O.OXXXO..XOOO.XO.OXOX..XO.OOX...XOOXXX...XXOXO.."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 51,
+   "last_move": "71",
+   "board": [
+    "....XO.X.XXX.O.OX.OO.X..OXXOO.O..O.OXXXO..XOOO.XO.OXOX..XO.OOX...XOOXXXX..XXOXO.."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 52,
+   "last_move": "54",
+   "board": [
+    "....XO.X.XXX.O.OX.OO.X..OXXOO.O..O.OXXXO..XOOO.XO.OXOXO.XO.OOX...XOOXXXX..XXOXO.."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 53,
+   "last_move": "63",
+   "board": [
+    "....XO.X.XXX.O.OX.OO.X..OXXOO.O..O.OXXXO..XOOO.XO.OXOXO.XO.OOX.X.XOOXXXX..XXOXO.."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 54,
+   "last_move": "46",
+   "board": [
+    "....XO.X.XXX.O.OX.OO.X..OXXOO.O..O.OXXXO..XOOOOXO.OXOXO.XO.OOX.X.XOOXXXX..XXOXO.."
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 55,
+   "last_move": "80",
+   "board": [
+    "....XO.X.XXX.O.OX.OO.X..OXXOO.O..O.OXXXO..XOOOOXO.OXOXO.XO.OOX.X.XOOXXXX..XXOXO.X"
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 56,
+   "last_move": "pass",
+   "board": [
+    "....XO.X.XXX.O.OX.OO.X..OXXOO.O..O.OXXXO..XOOOOXO.OXOXO.XO.OOX.X.XOOXXXX..XXOXO.X"
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 57,
+   "last_move": "29",
+   "board": [
+    "....XO.X.XXX.O.OX.OO.X..OXXOOXO..O.OXXXO..XOOOOXO.OXOXO.XO.OOX.X.XOOXXXX..XXOXO.X"
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    1
+   ]
+  },
+  {
+   "round": 58,
+   "last_move": "pass",
+   "board": [
+    "....XO.X.XXX.O.OX.OO.X..OXXOOXO..O.OXXXO..XOOOOXO.OXOXO.XO.OOX.X.XOOXXXX..XXOXO.X"
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": [
+    0
+   ]
+  },
+  {
+   "round": 59,
+   "last_move": "pass",
+   "board": [
+    "....XO.X.XXX.O.OX.OO.X..OXXOOXO..O.OXXXO..XOOOOXO.OXOXO.XO.OOX.X.XOOXXXX..XXOXO.X"
+   ],
+   "captures": {
+    "0": 0,
+    "1": 0
+   },
+   "next_to_play": []
+  }
+ ]
+}

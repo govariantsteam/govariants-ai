@@ -62,7 +62,7 @@ pub enum BadukMove {
     Pass,
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Debug)]
 pub struct BadukConfig {
     pub topology: Topology,
     pub komi: f32,

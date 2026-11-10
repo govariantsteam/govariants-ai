@@ -190,7 +190,7 @@ fn run_selfplay(args: SelfplayArgs) {
     let start = Instant::now();
     let result = run_self_play(
         &selfplay_config,
-        move || Baduk::new(board_config),
+        move || Baduk::new(board_config.clone()),
         &evaluator,
     );
     let elapsed = start.elapsed();
@@ -217,7 +217,7 @@ fn run_play(args: PlayArgs) {
     let stdout = std::io::stdout();
     let mut output = stdout.lock();
 
-    if let Err(err) = interactive(config, bot, human_player, &mut input, &mut output) {
+    if let Err(err) = interactive(&config, bot, human_player, &mut input, &mut output) {
         eprintln!("io error: {}", err);
         std::process::exit(1);
     }
@@ -251,7 +251,7 @@ fn run_match(args: MatchArgs) {
         }
     };
 
-    let game = Baduk::new(config);
+    let game = Baduk::new(config.clone());
     eprintln!(
         "Match on {} ({} nodes): {} vs {}, {} games",
         config.topology.describe(),
@@ -263,7 +263,7 @@ fn run_match(args: MatchArgs) {
 
     let start = Instant::now();
     let result = play_match(
-        config,
+        &config,
         agent_a,
         agent_b,
         args.games,

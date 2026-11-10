@@ -75,7 +75,7 @@ fn main() {
 
     for topology in boards {
         let game = Baduk::new(BadukConfig {
-            topology,
+            topology: topology.clone(),
             komi: 6.5,
         });
         println!("{} - {} nodes:", topology.describe(), game.num_nodes());

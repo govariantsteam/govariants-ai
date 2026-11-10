@@ -84,6 +84,25 @@ Because the rules only consult adjacency, a board is just a graph. Three topolog
 | Grid | `9x9`, `grid:5x7` | w×h | standard board; corners and edges |
 | Torus | `torus:7x7` | w×h | wraps on both axes, 4-regular, no edges or corners |
 | Cube | `cube:3` | 6n² | surface of a cube, 4-regular, stitched across faces |
+| Circular | — | rings×per-ring | govariants' circular boards; see below |
+| GridWithHoles | — | non-zero cells | govariants' bitmap boards |
+
+Circular and GridWithHoles exist to match govariants rather than to be
+configured by hand, so they have no `--board` spelling yet; the conformance
+harness builds them from a game's config.
+
+**Circular** is not a stack of independent circles. Each ring is rotated half
+a step from the one inside it, so every node has two radial neighbors inward,
+and **only the innermost and outermost rings carry intra-ring edges** — the
+middle rings connect purely radially. It is a triangular lattice on an
+annulus. Making every ring a cycle is the natural misreading and it changes
+which stones form a group.
+
+**GridWithHoles** is a bitmap where each cell is 0 (no intersection) or a
+mask: bit 0 connects right, bit 1 connects down, and 4 marks an intersection
+that only receives edges from above or the left. It is *not* "a grid with
+cells deleted" — a cell can sit next to a surviving neighbor with no edge
+between them.
 
 Cube adjacency is **derived from 3D cell-center positions**, not hand-stitched face edges: two cells are neighbors iff their centers sit a half-step apart across a cube edge, or one step apart within a face. That removes the orientation bookkeeping that makes cube boards error-prone, and it yields 3D coordinates for free — which is exactly what edge features (#8) need.
 
@@ -229,22 +248,25 @@ supports. Boards are stored as glyph strings, which keeps a 199-round 19x19
 game under 90 KB instead of 637 KB.
 
 The harness replays each game move by move and compares the board and both
-capture counts at every round. Current corpus: **5 games, 489 rounds, 80
-captures**, all matching.
+capture counts at every round. Current corpus: **14 games, 1532 rounds**
+across grid, circular and gridWithHoles boards, all matching.
+
+Moves are decoded per topology: grids use SGF coordinates, and every other
+board type uses the decimal node index, which is how govariants encodes them
+on the wire.
 
 A conformance test that cannot fail is worthless, so it is mutation-checked:
 transposing the coordinate decode makes all five games fail by round 2.
 
 ### Board types
 
-Only `grid` is implemented here so far. Across baduk games on the live server
-the real distribution is roughly:
+Across baduk games on the live server the real distribution is roughly:
 
 | Board type | Games seen | Implemented |
 |---|---|---|
 | grid | 128 | yes |
-| circular | 62 | no |
-| gridWithHoles | 61 | no |
+| circular | 62 | yes |
+| gridWithHoles | 61 | yes |
 | polygonal | 14 | no |
 | sierpinsky | 12 | no |
 | trihexagonal | 8 | no |
@@ -252,9 +274,33 @@ the real distribution is roughly:
 | custom | 6 | no |
 
 Grid is only about 37% of real games, so the graph topologies are the majority
-of the work, not an exotic afterthought. govariants' `boardFactory.ts` and its
-helpers are the reference; unsupported board types are reported as skipped by
-the harness rather than silently passing.
+of the work, not an exotic afterthought. The three implemented types cover
+about 85% of games played. govariants' `boardFactory.ts` and its helpers are
+the reference; unsupported board types are reported as skipped by the harness
+rather than silently passing.
+
+### Replaying real games is necessary but not sufficient
+
+Worth recording, because it is easy to over-trust a green corpus.
+
+Both new topologies were mutation-tested. Making every circular ring a cycle
+is caught by the corpus — but at rounds 21 to 49, not round 1, because extra
+edges only change the outcome once a capture depends on them. That is exactly
+the kind of case hand-written tests miss and real games catch.
+
+Ignoring the GridWithHoles connectivity bits, however, **passed the entire
+corpus**. All four finished boards sampled used only values 0 and 3 with zero
+adjacent-but-unconnected pairs — they were plain grids with five cells
+removed, on which the correct and incorrect readings are identical. Targeting
+a board with 72 such pairs did not help either: across its 91 rounds, two
+same-coloured stones never once landed on both ends of one of them, and the
+game contained a single capture.
+
+So the bitmap semantics are pinned by direct unit tests instead
+(`grid_with_holes_respects_connectivity_bits`), which do fail under that
+mutant. The lesson for the remaining board types: fetch real games *and* write
+a structural test, because whether a corpus exercises a given rule is a matter
+of what players happened to play.
 
 ## Playing on govariants.com
 
@@ -348,6 +394,6 @@ See [open issues](https://github.com/govariantsteam/govariants-ai/issues) for th
 5. Train and validate model on mixed topologies (#4)
 6. Edge features for geometric boards (#8) — cube coordinates now exist, so this is mostly plumbing
 7. Port variant game rules to Rust (#5), verified by the conformance harness
-8. Port the remaining board types (circular, gridWithHoles, polygonal, sierpinsky, trihexagonal, sunflower)
+8. Port the remaining board types (polygonal, sierpinsky, trihexagonal, sunflower, custom) — grid, circular and gridWithHoles are done
 9. Adapter that joins games on govariants.com as a named bot account
 10. Serving integration with govariants (#6)
