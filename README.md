@@ -17,25 +17,61 @@ None of these fit a project that needs AI across many variants with different bo
 
 ## Architecture
 
+Two halves. **The Rust half exists; the Python half does not yet** (issue #2),
+so today the bot plays with hand-written rollout heuristics rather than a
+learned evaluator.
+
 ```
-Rust (fast self-play)          Python (training)
-┌─────────────────────┐       ┌──────────────────────┐
-│ Game trait           │       │ GNN model (PyG)      │
-│ ├─ Baduk             │       │ Training loop         │
-│ ├─ Capture Go        │  ──>  │ ONNX export           │
-│ ├─ Cube Go           │ data/ │                      │
-│ └─ ...               │       └──────────┬───────────┘
-│                      │  <──             │
-│ MCTS + Self-play     │ models/          │
-└─────────────────────┘       ┌──────────┴───────────┐
-                              │ ONNX model served in  │
-                              │ govariants (Node/browser) │
-                              └──────────────────────┘
+Rust — rules, search, self-play, and a client that plays on govariants
+┌────────────────────────────────────────────────────────────────────┐
+│ game.rs          Game trait: rules + graph structure for a GNN     │
+│ games/                                                             │
+│   topology.rs    board graphs: grid, torus, cube, circular,        │
+│                  gridWithHoles                                     │
+│   baduk.rs       Go on an arbitrary board graph                    │
+│ mcts.rs          PUCT search over a pluggable Evaluator            │
+│ rollout.rs       heuristic rollout evaluator (needs no net)        │
+│ selfplay.rs      parallel self-play -> data/*.bin                  │
+│ play.rs          terminal UI + engine-vs-engine match harness      │
+│ govariants.rs    API client + wire-format translation              │
+└────────────────────────────────────────────────────────────────────┘
+        │ data/*.bin                            ▲ models/*.onnx
+        ▼                                       │
+Python — training              ** NOT BUILT YET (issue #2) **
+┌────────────────────────────────────────────────────────────────────┐
+│ GNN with policy + value heads, training loop, ONNX export          │
+└────────────────────────────────────────────────────────────────────┘
+        │
+        ▼  served in govariants via onnxruntime-node / -web (issue #6)
 ```
 
-- **Rust**: game rules, MCTS search, parallel self-play. Fast enough to generate training data on modest hardware.
-- **Python/PyTorch Geometric**: GNN architecture, training loop, ONNX export.
-- **ONNX**: trained models served in govariants via onnxruntime-node or onnxruntime-web.
+- **Rust**: game rules, MCTS search, parallel self-play, and the live bot. The
+  `Evaluator` trait is the seam a neural net drops into; `rollout.rs` is one
+  implementation of it and an ONNX-backed one would be another.
+- **Python**: GNN architecture, training loop, ONNX export.
+- **ONNX**: trained models served in govariants via onnxruntime-node or
+  onnxruntime-web.
+
+### A revision to the Python plan
+
+This was originally specced as PyTorch Geometric. **Prefer plain PyTorch with a
+dense adjacency matrix instead.** A message-passing layer is just
+`X' = relu(X @ W_self + (A_norm @ X) @ W_neigh)`, and at ≤361 nodes a dense
+adjacency matrix is ~130 KB and a matmul beats sparse scatter anyway. PyG's
+gather/scatter ops are awkward to export to ONNX, which issue #6 needs for
+onnxruntime-web; passing `A` as a model input with a dynamic axis keeps one set
+of weights serving every topology, which is the whole point of the GNN. Edge
+features (#8) then become one adjacency matrix per direction bucket — still
+just matmuls.
+
+### Binaries
+
+| Binary | Purpose |
+|---|---|
+| `govariants-ai` | `play` (terminal game), `match` (strength), `selfplay` (training data) |
+| `bot` | plays on a govariants server (see below) |
+| `bench` | micro-benchmarks of the hot paths, per topology |
+| `budget` | how many playouts a fixed thinking time actually buys |
 
 ## Why a GNN (not a CNN)?
 
@@ -140,6 +176,14 @@ All three are stated in terms of adjacency alone, so they work on any topology. 
 
 A terminal UI to play the engine, plus an engine-vs-engine harness for measuring strength.
 
+### govariants client (`src/govariants.rs`)
+
+The API client plus translation between govariants' wire format and this
+engine: board config to topology, `state.board` to a position, and move
+encoding (SGF on grids, decimal node index everywhere else). The conformance
+harness drives these same functions, so replaying real games verifies the code
+the live bot runs.
+
 ### Self-play pipeline (`src/selfplay.rs`)
 
 Parallel self-play engine using rayon. Plays MCTS games and serializes training data for the Python training pipeline. Dirichlet noise is applied at the MCTS root for exploration.
@@ -190,7 +234,23 @@ cargo run --release -- match --board cube:3 --simulations 800 \
 cargo run --release -- selfplay --board 9x9 --games 100 --simulations 200
 ```
 
-See all options with `cargo run --release -- <subcommand> --help`.
+### Benchmark and budget
+
+```bash
+# throughput of the hot paths, across topologies
+cargo run --release --bin bench
+
+# what a fixed thinking time buys, with the tree cost included
+cargo run --release --bin budget
+```
+
+`bench` times move generation, node features and whole searches. `budget`
+calibrates a real search to a 5-second budget and reports playouts, playouts
+per second and tree nodes per second, at several rollouts-per-node settings —
+which is how the "more tree beats less noise" finding below was measured.
+
+See all options with `cargo run --release -- <subcommand> --help`, and
+`cargo run --release --bin bot -- help` for the bot.
 
 ## Strength and performance
 
