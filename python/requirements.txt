@@ -1,0 +1,7 @@
+# Deliberately not PyTorch Geometric: a message-passing layer here is one
+# matmul against a dense normalized adjacency, which keeps the ONNX export
+# trivial for onnxruntime-web (see issue #6).
+torch>=2.5
+numpy>=1.26
+onnx>=1.16
+onnxruntime>=1.18
