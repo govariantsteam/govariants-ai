@@ -1,3 +1,7 @@
 /target
 /data
 .govariants-bot-credentials
+/.venv
+/models
+__pycache__/
+*.pyc

@@ -2,6 +2,8 @@ pub mod game;
 pub mod games;
 pub mod govariants;
 pub mod mcts;
+#[cfg(feature = "onnx")]
+pub mod net;
 pub mod play;
 pub mod rollout;
 pub mod selfplay;

@@ -3,12 +3,21 @@ name = "govariants-ai"
 version = "0.1.0"
 edition = "2024"
 
+[features]
+default = []
+# Pulls in tract-onnx, which is a large pure-Rust tree. Off by default so the
+# engine, the bot and the test suite stay quick to build; CI enables it.
+onnx = ["dep:tract-onnx"]
+
 [dependencies]
 rand = "0.9"
 rand_distr = "0.5"
 rayon = "1.10"
 clap = { version = "4", features = ["derive"] }
 serde_json = "1"
+# Pure-Rust ONNX inference: no native onnxruntime to install, which keeps CI
+# and the browser-serving story simple.
+tract-onnx = { version = "0.21", optional = true }
 # Blocking HTTP with a cookie jar, for the govariants client. Blocking keeps
 # the bot a simple loop: it is turn-based and polls, so there is nothing for an
 # async runtime to overlap.
@@ -18,3 +27,8 @@ reqwest = { version = "0.12", default-features = false, features = [
     "cookies",
     "rustls-tls",
 ] }
+
+# Only builds with the onnx feature, so the default `cargo build` stays light.
+[[bin]]
+name = "netplay"
+required-features = ["onnx"]

@@ -17,9 +17,8 @@ None of these fit a project that needs AI across many variants with different bo
 
 ## Architecture
 
-Two halves. **The Rust half exists; the Python half does not yet** (issue #2),
-so today the bot plays with hand-written rollout heuristics rather than a
-learned evaluator.
+Two halves. Both halves now exist: the Rust engine plays with either hand-written rollout
+heuristics or a trained network (see **The neural network** below).
 
 ```
 Rust — rules, search, self-play, and a client that plays on govariants
@@ -445,6 +444,99 @@ updates are available over Socket.IO on `game/:id`, `game/:id/seats` and
 occupancy, which is how Phantom Go would work) — but the bot polls instead,
 which is plenty for a turn-based game and avoids a websocket client.
 
+## The neural network
+
+Exists, trains, exports, and plays. `python/` holds the training half; the
+engine plays with it through the same `Evaluator` trait the rollouts use.
+
+```bash
+python3 -m venv .venv && .venv/bin/pip install -r python/requirements.txt
+
+# generate data (one directory per topology, so files do not collide)
+cargo run --release -- selfplay --board 9x9    --games 150 --simulations 200 --output data/grid9
+cargo run --release -- selfplay --board cube:3 --games 150 --simulations 200 --output data/cube3
+
+# train on mixed topologies, then export
+cd python
+../.venv/bin/python -m gvai.train --data ../data/grid9 ../data/cube3 --epochs 40
+../.venv/bin/python -m gvai.export --checkpoint ../models/gvai_mixed.pt --out ../models/gvai.onnx
+../.venv/bin/python -m gvai.selftest      # checks that run without pytest
+
+# play with it (needs the onnx feature)
+cargo run --release --features onnx --bin netplay -- --board 9x9 inspect
+cargo run --release --features onnx --bin netplay -- --board cube:3 selfmatch --games 16
+```
+
+### What it is
+
+A graph net: `h' = relu(h W_self + (A_norm h) W_neigh)` stacked a few deep,
+then per-node policy logits, a separate pass logit, and a tanh value head.
+84k parameters at hidden 96 x 4 layers.
+
+`A_norm` is an **input**, not a constant, so **one model file plays every
+topology** — verified in `src/net.rs` tests, where the same `gvai.onnx` runs on
+an 81-node grid and a 54-node cube surface.
+
+The policy is split into per-node logits plus one pass logit rather than a flat
+`num_nodes + 1` vector, because mixed board sizes in a batch would otherwise
+put the pass slot at a different index per example.
+
+### What it learned
+
+On an empty 9x9 its four favourite moves are the four 3-3 points, at identical
+probability — it found both a reasonable 9x9 opening and the board's symmetry
+from self-play alone. The priors are only ~1.3x uniform though, so the policy
+is diffuse: 30% top-1 agreement with MCTS, value MSE 0.615 against 1.0 for
+always guessing zero, policy cross-entropy 2.64 against a 1.95 floor.
+
+### Measuring it honestly
+
+| Match (9x9) | Result |
+|---|---|
+| net 800 sims vs net 100 sims | 81%, mean margin 8.3 points |
+| net vs heuristic rollouts, equal sims | 100% — **but see below** |
+
+The first row is the trustworthy one: the same evaluator on both sides, so
+neither can exploit a quirk of the other, and more search wins — which is what
+says the net is a usable evaluator at all.
+
+**The 100% against the rollout bot is inflated.** Mean margin was 41 points on
+an 81-point board and the net never passed first in 12 games. The rollout
+bot's prior gives zero weight to eye-fills and self-ataris, so once only those
+remain it passes while points are still convertible, and the net keeps playing.
+That is a real weakness of the rollout prior rather than net strength, and it
+is why the honest comparison is net against itself.
+
+### Two traps worth knowing
+
+**The policy loss floor is not zero.** Targets are MCTS visit distributions,
+not one-hot labels, and cross-entropy to a soft target cannot go below the
+target's entropy (1.95 nats here). `train.py` prints the floor, because
+"why won't it converge to zero" is otherwise an easy hour to lose.
+
+**Padding caused a NaN that only mixed topologies could reveal.** Padded nodes
+have target 0 and had logit -inf, and `0 * -inf` is NaN. Training on one board
+size never pads, so single-topology runs looked healthy while mixed-topology
+runs silently lost the policy objective — with the value head still improving,
+so nothing announced it. Pinned by
+`test_mixed_board_sizes_give_a_finite_loss`, alongside a padding-invariance
+test that a board predicts the same alone as it does padded.
+
+### Python and Rust must agree on the adjacency
+
+The net takes the adjacency as an input, so the matrix Rust builds at play time
+must equal the one Python built during training — and a mismatch would not
+crash, it would just play worse for no visible reason. Same failure mode as the
+TypeScript/Rust rules divergence, so it gets the same treatment:
+`python -m gvai.make_fixture` writes `tests/fixtures/adjacency.json` from real
+self-play edge lists, and `tests/adjacency_parity.rs` asserts it for grid and
+cube boards. ONNX export also checks itself against PyTorch at two board sizes
+before declaring success (worst difference 1.5e-5).
+
+Inference is `tract`, pure Rust, so there is no native onnxruntime to install.
+A single evaluation is 0.48 ms on 9x9, giving ~2,100 search simulations per
+second.
+
 ## Training data format
 
 Self-play writes `.bin` files to `data/` (one per game). Format is custom binary (`GVAI`), little-endian:
@@ -509,7 +601,7 @@ See [open issues](https://github.com/govariantsteam/govariants-ai/issues) for th
 
 1. ~~Self-play data pipeline (#1)~~ ✅
 2. ~~A bot you can actually play, on more than one topology~~ ✅ (grid, torus, cube)
-3. GNN model and training loop (#2) ← **next up**
+3. ~~GNN model and training loop (#2)~~ ✅ first version trains, exports and plays
 4. Full training loop integration (#3)
 5. Train and validate model on mixed topologies (#4)
 6. Edge features for geometric boards (#8) — cube coordinates now exist, so this is mostly plumbing
