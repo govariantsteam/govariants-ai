@@ -53,7 +53,11 @@ impl Color {
 
 #[inline]
 fn color_of(player: usize) -> Color {
-    if player == 0 { Color::Black } else { Color::White }
+    if player == 0 {
+        Color::Black
+    } else {
+        Color::White
+    }
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
@@ -315,10 +319,9 @@ impl Baduk {
                             liberties += 1;
                         }
                     }
-                    c if c == color
-                        && scratch.mark_seen(nb) => {
-                            scratch.stack.push(nb);
-                        }
+                    c if c == color && scratch.mark_seen(nb) => {
+                        scratch.stack.push(nb);
+                    }
                     _ => {}
                 }
             }
@@ -377,10 +380,11 @@ impl Baduk {
                     c if c == color
                         // Joining a group that keeps a liberty after we fill
                         // this one.
-                        && self.walk_group(nb, scratch) >= 2 => {
-                            legal = true;
-                            break;
-                        }
+                        && self.walk_group(nb, scratch) >= 2 =>
+                    {
+                        legal = true;
+                        break;
+                    }
                     _ => {}
                 }
             }
@@ -454,10 +458,9 @@ impl Baduk {
                             liberties += 1;
                         }
                     }
-                    c if c == color
-                        && scratch.mark_seen(nb) => {
-                            scratch.stack.push(nb);
-                        }
+                    c if c == color && scratch.mark_seen(nb) => {
+                        scratch.stack.push(nb);
+                    }
                     _ => {}
                 }
             }
@@ -478,14 +481,12 @@ impl Baduk {
         self.hash = probe.new_hash;
 
         // Simple ko: a single stone captured a single stone and sits in atari.
-        self.simple_ko = if probe.captured.len() == 1
-            && probe.group_size == 1
-            && probe.liberties == 1
-        {
-            Some(probe.captured[0])
-        } else {
-            None
-        };
+        self.simple_ko =
+            if probe.captured.len() == 1 && probe.group_size == 1 && probe.liberties == 1 {
+                Some(probe.captured[0])
+            } else {
+                None
+            };
     }
 
     /// Write all legal moves into `out`, reusing `scratch`. Never allocates
@@ -641,7 +642,6 @@ impl Baduk {
         true
     }
 
-
     /// First liberty of the group at `start`, if any. Useful for tactical
     /// rollout policies ("this group is in atari, play its last liberty").
     pub fn first_liberty(&self, start: usize, scratch: &mut Scratch) -> Option<usize> {
@@ -793,11 +793,7 @@ impl Game for Baduk {
         assert_eq!(player, self.next_to_play, "Not this player's turn");
         assert!(!self.game_over, "Game is already over");
         let mut scratch = Scratch::new(self.stones.len());
-        assert!(
-            self.try_play(mv, &mut scratch),
-            "Illegal move: {:?}",
-            mv
-        );
+        assert!(self.try_play(mv, &mut scratch), "Illegal move: {:?}", mv);
     }
 
     fn is_terminal(&self) -> bool {
@@ -1089,7 +1085,12 @@ mod tests {
         // Capture across a cube edge: surround one cell and take it.
         let scratch = game.new_scratch();
         let target = 0usize;
-        let neighbors: Vec<usize> = game.graph().neighbors(target).iter().map(|&n| n as usize).collect();
+        let neighbors: Vec<usize> = game
+            .graph()
+            .neighbors(target)
+            .iter()
+            .map(|&n| n as usize)
+            .collect();
         assert_eq!(neighbors.len(), 4);
 
         game.play_move(0, BadukMove::Place(neighbors[0]));
@@ -1115,7 +1116,12 @@ mod tests {
         assert_eq!(game.num_nodes(), 25);
         // A corner on a torus is not a corner: node 0 has 4 neighbors, and a
         // stone there can be captured from all sides, including wraparound.
-        let neighbors: Vec<usize> = game.graph().neighbors(0).iter().map(|&n| n as usize).collect();
+        let neighbors: Vec<usize> = game
+            .graph()
+            .neighbors(0)
+            .iter()
+            .map(|&n| n as usize)
+            .collect();
         assert_eq!(neighbors.len(), 4);
         game.play_move(0, BadukMove::Place(neighbors[0]));
         game.play_move(1, BadukMove::Place(0));
@@ -1149,7 +1155,10 @@ mod tests {
         let expected = empty_hash
             ^ c.def.zobrist[1][Color::Black.zobrist_slot()]
             ^ c.def.zobrist[5][Color::Black.zobrist_slot()];
-        assert_eq!(c.hash, expected, "capture must undo the captured stone's hash");
+        assert_eq!(
+            c.hash, expected,
+            "capture must undo the captured stone's hash"
+        );
     }
 
     #[test]

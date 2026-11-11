@@ -31,7 +31,10 @@ pub type Result<T> = std::result::Result<T, Error>;
 pub enum Error {
     Http(String),
     /// The server answered, but with a refusal.
-    Server { status: u16, body: String },
+    Server {
+        status: u16,
+        body: String,
+    },
     /// The server's data could not be translated into a position.
     Translate(String),
     /// Something we need is missing from a response.
@@ -244,7 +247,8 @@ pub fn topology_from_config(board: &Value) -> std::result::Result<Topology, Stri
             let nodes_per_ring = board
                 .get("nodesPerRing")
                 .and_then(Value::as_u64)
-                .ok_or("circular board has no nodesPerRing")? as usize;
+                .ok_or("circular board has no nodesPerRing")?
+                as usize;
             Ok(Topology::Circular {
                 rings,
                 nodes_per_ring,
@@ -309,7 +313,10 @@ pub fn decode_move(topology: &Topology, text: &str) -> std::result::Result<usize
             let x = bytes[0].wrapping_sub(b'a') as usize;
             let y = bytes[1].wrapping_sub(b'a') as usize;
             if x >= width || y >= height {
-                return Err(format!("move '{}' is off a {}x{} board", text, width, height));
+                return Err(format!(
+                    "move '{}' is off a {}x{} board",
+                    text, width, height
+                ));
             }
             Ok(y * width + x)
         }
@@ -505,7 +512,8 @@ mod tests {
 
     #[test]
     fn reads_a_flat_graph_position() {
-        let config = json!({"komi": 0.5, "board": {"type": "circular", "rings": 2, "nodesPerRing": 3}});
+        let config =
+            json!({"komi": 0.5, "board": {"type": "circular", "rings": 2, "nodesPerRing": 3}});
         let state = json!({
             "state": {"board": [0, 1, 2, 0, 0, 0], "captures": {"0": 0, "1": 0}},
             "next_to_play": [0],

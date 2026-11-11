@@ -35,10 +35,7 @@ pub enum Topology {
     /// carry intra-ring edges; the middle rings connect purely radially,
     /// which makes this a triangular lattice on an annulus rather than a
     /// stack of independent circles.
-    Circular {
-        rings: usize,
-        nodes_per_ring: usize,
-    },
+    Circular { rings: usize, nodes_per_ring: usize },
     /// A grid with cells removed and per-cell connectivity, matching
     /// govariants' `gridWithHoles` boards.
     ///
@@ -153,10 +150,7 @@ impl Topology {
             connect(index(rings - 1, j), index(rings - 1, j - 1));
         }
         connect(index(0, nodes_per_ring - 1), index(0, 0));
-        connect(
-            index(rings - 1, nodes_per_ring - 1),
-            index(rings - 1, 0),
-        );
+        connect(index(rings - 1, nodes_per_ring - 1), index(rings - 1, 0));
 
         Graph::from_lists(neighbor_lists, coords)
     }
@@ -399,9 +393,9 @@ impl Topology {
                 let row = size - row_from_bottom;
                 Some(face * size * size + row * size + col)
             }
-            Topology::Circular { .. } | Topology::GridWithHoles { .. } => unreachable!(
-                "graph boards are parsed as node indices above"
-            ),
+            Topology::Circular { .. } | Topology::GridWithHoles { .. } => {
+                unreachable!("graph boards are parsed as node indices above")
+            }
         }
     }
 
@@ -426,7 +420,9 @@ impl Topology {
                     }
                     out.push('\n');
                 }
-                out.push_str("    (ring index on the left; play by node number, 'nbrs <n>' to inspect)\n");
+                out.push_str(
+                    "    (ring index on the left; play by node number, 'nbrs <n>' to inspect)\n",
+                );
                 out
             }
             Topology::GridWithHoles { bitmap } => {
@@ -752,7 +748,11 @@ mod tests {
         assert_eq!(g.num_nodes(), 4);
         let (a, b, c, d) = (0usize, 1usize, 2usize, 3usize);
 
-        assert_eq!(g.neighbors(a), &[b as u32, c as u32], "(0,0) joins right and down");
+        assert_eq!(
+            g.neighbors(a),
+            &[b as u32, c as u32],
+            "(0,0) joins right and down"
+        );
         assert_eq!(g.neighbors(b), &[a as u32]);
         assert_eq!(g.neighbors(c), &[a as u32]);
 

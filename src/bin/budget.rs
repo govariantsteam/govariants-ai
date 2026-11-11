@@ -135,11 +135,7 @@ fn main() {
             komi: 6.5,
         });
         let (rate, _) = raw_playouts(&game);
-        println!(
-            "{} - {} points",
-            topology.describe(),
-            game.num_nodes()
-        );
+        println!("{} - {} points", topology.describe(), game.num_nodes());
         println!(
             "    raw playout speed: {:.0} playouts/s  ({} in {:.0}s, ignoring tree overhead)",
             rate,

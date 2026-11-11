@@ -157,11 +157,13 @@ fn replay(path: &Path) -> Result<usize, Divergence> {
                             index,
                             format!(
                                 "turn mismatch: server says player {} plays '{}', engine expects {:?}",
-                                player, other, game.next_to_play()
+                                player,
+                                other,
+                                game.next_to_play()
                             ),
                         ));
                     }
-                    if !game.try_play(BadukMove::Place(node), &mut scratch, ) {
+                    if !game.try_play(BadukMove::Place(node), &mut scratch) {
                         return Err(fail(
                             index,
                             format!(
@@ -188,10 +190,7 @@ fn replay(path: &Path) -> Result<usize, Divergence> {
                 index,
                 format!(
                     "board differs after move '{}':{}",
-                    round
-                        .get("last_move")
-                        .and_then(Value::as_str)
-                        .unwrap_or(""),
+                    round.get("last_move").and_then(Value::as_str).unwrap_or(""),
                     diff_boards(&expected, &actual)
                 ),
             ));
@@ -207,10 +206,7 @@ fn replay(path: &Path) -> Result<usize, Divergence> {
             if server != ours {
                 return Err(fail(
                     index,
-                    format!(
-                        "captures differ: server {:?}, engine {:?}",
-                        server, ours
-                    ),
+                    format!("captures differ: server {:?}, engine {:?}", server, ours),
                 ));
             }
         }
@@ -253,10 +249,7 @@ fn replays_real_games_from_govariants() {
                 skipped.push(format!("{}: {}", name, div.detail));
             }
             Err(div) => {
-                println!(
-                    "  FAIL {} at round {}: {}",
-                    name, div.round, div.detail
-                );
+                println!("  FAIL {} at round {}: {}", name, div.round, div.detail);
                 failures.push(div);
             }
         }
