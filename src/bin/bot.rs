@@ -16,15 +16,17 @@
 
 use clap::{Parser, Subcommand};
 use govariants_ai::game::Game;
-use govariants_ai::games::baduk::{Baduk, BadukMove};
+use govariants_ai::games::baduk::{Baduk, BadukConfig, BadukMove};
 use govariants_ai::games::topology::Topology;
 use govariants_ai::govariants::{
     Client, DEFAULT_BASE, LivePosition, encode_move, position_from_state, topology_from_config,
 };
-use govariants_ai::mcts::{MctsConfig, search_detailed};
+use govariants_ai::mcts::{Evaluator, MctsConfig, search_detailed};
+use govariants_ai::net::NetEvaluator;
 use govariants_ai::rollout::HeuristicRolloutEvaluator;
 use serde_json::Value;
 use serde_json::json;
+use std::path::PathBuf;
 use std::time::Duration;
 
 const CREDENTIALS_FILE: &str = ".govariants-bot-credentials";
@@ -36,6 +38,11 @@ struct Cli {
     /// API base URL. Point this at a local instance to test.
     #[arg(long, default_value = DEFAULT_BASE, global = true)]
     base: String,
+
+    /// Trained ONNX model to play with. Without it, the bot uses the
+    /// hand-written rollout heuristics.
+    #[arg(long, global = true)]
+    model: Option<PathBuf>,
 
     #[command(subcommand)]
     command: Command,
@@ -123,7 +130,7 @@ fn main() {
         Command::Probe {
             game_id,
             simulations,
-        } => probe(&cli.base, game_id, *simulations),
+        } => probe(&cli.base, &cli.model, game_id, *simulations),
         Command::Leave { game_id, seat } => leave(&cli.base, game_id, *seat),
         Command::Host {
             board,
@@ -134,6 +141,7 @@ fn main() {
             poll_seconds,
         } => host(
             &cli.base,
+            &cli.model,
             board,
             *komi,
             *seat,
@@ -150,6 +158,7 @@ fn main() {
             dry_run,
         } => play(
             &cli.base,
+            &cli.model,
             game_id,
             *seat,
             *simulations,
@@ -353,19 +362,43 @@ fn fetch_position(client: &Client, game_id: &str) -> Result<(Value, LivePosition
     Ok((initial, position))
 }
 
+/// Build the evaluator the bot plays with: a trained net if one was given,
+/// otherwise the hand-written rollouts.
+fn make_evaluator(
+    model: &Option<PathBuf>,
+    game: &Baduk,
+    rollouts: usize,
+) -> Result<Box<dyn Evaluator<Baduk>>, String> {
+    match model {
+        Some(path) => {
+            let net = NetEvaluator::load(path, game)
+                .map_err(|e| format!("could not load {}: {}", path.display(), e))?;
+            println!("playing with the network at {}", path.display());
+            Ok(Box::new(net))
+        }
+        None => {
+            println!("playing with heuristic rollouts (pass --model to use a network)");
+            Ok(Box::new(HeuristicRolloutEvaluator {
+                num_rollouts: rollouts,
+                ..Default::default()
+            }))
+        }
+    }
+}
+
 /// Moves the engine likes, best first, so a rejected move has successors.
-fn ranked_moves(game: &Baduk, simulations: usize, rollouts: usize) -> (Vec<BadukMove>, f32) {
-    let evaluator = HeuristicRolloutEvaluator {
-        num_rollouts: rollouts,
-        ..Default::default()
-    };
+fn ranked_moves(
+    game: &Baduk,
+    evaluator: &dyn Evaluator<Baduk>,
+    simulations: usize,
+) -> (Vec<BadukMove>, f32) {
     let config = MctsConfig {
         num_simulations: simulations,
         temperature: 0.0,
         noise: None,
         ..Default::default()
     };
-    let outcome = search_detailed(game, &evaluator, &config);
+    let outcome = search_detailed(game, evaluator, &config);
 
     let mut scored: Vec<(usize, f32)> = outcome
         .visits
@@ -399,7 +432,12 @@ fn wire_move(position: &LivePosition, mv: BadukMove) -> String {
     }
 }
 
-fn probe(base: &str, game_id: &str, simulations: usize) -> Result<(), String> {
+fn probe(
+    base: &str,
+    model: &Option<PathBuf>,
+    game_id: &str,
+    simulations: usize,
+) -> Result<(), String> {
     // Reading a game needs no session.
     let client = Client::new(base).map_err(|e| e.to_string())?;
     let (initial, position) = fetch_position(&client, game_id)?;
@@ -429,7 +467,8 @@ fn probe(base: &str, game_id: &str, simulations: usize) -> Result<(), String> {
         return Ok(());
     }
 
-    let (moves, value) = ranked_moves(&position.game, simulations, 1);
+    let evaluator = make_evaluator(model, &position.game, 1)?;
+    let (moves, value) = ranked_moves(&position.game, &*evaluator, simulations);
     println!("\nengine eval for the player to move: {:+.2}", value);
     println!("it would play, best first:");
     for mv in moves.iter().take(5) {
@@ -465,6 +504,7 @@ fn board_config_json(topology: &Topology) -> Result<Value, String> {
 #[allow(clippy::too_many_arguments)]
 fn host(
     base: &str,
+    model: &Option<PathBuf>,
     board: &str,
     komi: f32,
     seat: usize,
@@ -508,12 +548,15 @@ fn host(
     println!();
     println!("waiting for an opponent...");
 
+    let board_now = Baduk::new(BadukConfig { topology, komi });
+    let evaluator = make_evaluator(model, &board_now, rollouts)?;
+
     play_loop(
         &client,
         &game_id,
         seat,
+        &*evaluator,
         simulations,
-        rollouts,
         poll_seconds,
         false,
     )
@@ -522,6 +565,7 @@ fn host(
 #[allow(clippy::too_many_arguments)]
 fn play(
     base: &str,
+    model: &Option<PathBuf>,
     game_id: &str,
     seat: Option<usize>,
     simulations: usize,
@@ -586,12 +630,14 @@ fn play(
         if dry_run { " (dry run)" } else { "" }
     );
 
+    let evaluator = make_evaluator(model, &position.game, rollouts)?;
+
     play_loop(
         &client,
         game_id,
         our,
+        &*evaluator,
         simulations,
-        rollouts,
         poll_seconds,
         dry_run,
     )
@@ -602,8 +648,8 @@ fn play_loop(
     client: &Client,
     game_id: &str,
     our: usize,
+    evaluator: &dyn Evaluator<Baduk>,
     simulations: usize,
-    rollouts: usize,
     poll_seconds: u64,
     dry_run: bool,
 ) -> Result<(), String> {
@@ -624,7 +670,7 @@ fn play_loop(
             continue;
         }
 
-        let (moves, value) = ranked_moves(&position.game, simulations, rollouts);
+        let (moves, value) = ranked_moves(&position.game, evaluator, simulations);
         if moves.is_empty() {
             return Err("engine produced no moves".to_string());
         }

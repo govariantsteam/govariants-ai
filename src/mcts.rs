@@ -199,12 +199,16 @@ pub struct SearchOutcome {
 }
 
 /// Run MCTS search and return the visit-count distribution over actions.
-pub fn search<G: Game, E: Evaluator<G>>(game: &G, evaluator: &E, config: &MctsConfig) -> Vec<f32> {
+pub fn search<G: Game, E: Evaluator<G> + ?Sized>(
+    game: &G,
+    evaluator: &E,
+    config: &MctsConfig,
+) -> Vec<f32> {
     search_detailed(game, evaluator, config).policy
 }
 
 /// Run MCTS search, returning the visit distribution and the root evaluation.
-pub fn search_detailed<G: Game, E: Evaluator<G>>(
+pub fn search_detailed<G: Game, E: Evaluator<G> + ?Sized>(
     game: &G,
     evaluator: &E,
     config: &MctsConfig,
@@ -323,7 +327,7 @@ fn expand_node<G: Game>(node: &mut MctsNode, policy: &[f32], game: &G) {
 /// Run one simulation from `node`, whose position is `game`.
 ///
 /// Returns the value from the perspective of the player to move in `game`.
-fn simulate<G: Game, E: Evaluator<G>>(
+fn simulate<G: Game, E: Evaluator<G> + ?Sized>(
     node: &mut MctsNode,
     game: &mut G,
     evaluator: &E,
