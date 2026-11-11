@@ -28,7 +28,12 @@ reqwest = { version = "0.12", default-features = false, features = [
     "rustls-tls",
 ] }
 
-# Only builds with the onnx feature, so the default `cargo build` stays light.
+# Only build with the onnx feature, so the default `cargo build` stays light.
 [[bin]]
 name = "netplay"
+required-features = ["onnx"]
+
+# The bot can play with a trained network, so it needs inference too.
+[[bin]]
+name = "bot"
 required-features = ["onnx"]
