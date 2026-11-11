@@ -489,6 +489,42 @@ from self-play alone. The priors are only ~1.3x uniform though, so the policy
 is diffuse: 30% top-1 agreement with MCTS, value MSE 0.615 against 1.0 for
 always guessing zero, policy cross-entropy 2.64 against a 1.95 floor.
 
+### The loop compounds
+
+The point of AlphaZero is that generating data with the current net, retraining
+on it, and repeating makes the net stronger with no new hand-written knowledge.
+It does:
+
+```bash
+# iteration 2: the net generates its own data, no rollouts involved
+cargo run --release --features onnx --bin netplay -- --board 9x9 --komi 6.5 \
+    selfplay --games 150 --simulations 200 --output data/iter2/grid9
+
+# retrain on iterations 1 and 2 together (a replay buffer), then export
+cd python && ../.venv/bin/python -m gvai.train \
+    --data ../data/grid9 ../data/iter2/grid9 --epochs 40 --out ../models/gvai_iter2.pt
+
+# measure: challenger vs incumbent, equal search, colours alternating
+cargo run --release --features onnx --bin netplay -- --model models/gvai.onnx \
+    --board 9x9 versus --challenger models/gvai_iter2.onnx --games 24
+```
+
+One iteration, 540 self-played games, same architecture and hyperparameters:
+
+| Board | iteration 2 vs iteration 1 | Elo |
+|---|---|---|
+| 9x9 grid | 18-6 (75.0%) | ~+191 |
+| cube:3 | 16-8 (66.7%) | ~+120 |
+
+The same single model file plays both, so the gain transfers across topologies
+for free, which is the whole argument for a graph net over a CNN. Training
+metrics moved the same way: top-1 agreement 30.1% to 36.2%, value MSE 0.615 to
+0.556, and gap-to-floor 0.689 to 0.506.
+
+Caveat on sample size: 24 games gives a standard error of about 10 points, so
+the 9x9 result is comfortably significant and the cube result is suggestive
+rather than settled.
+
 ### Measuring it honestly
 
 | Match (9x9) | Result |
@@ -500,12 +536,24 @@ The first row is the trustworthy one: the same evaluator on both sides, so
 neither can exploit a quirk of the other, and more search wins — which is what
 says the net is a usable evaluator at all.
 
-**The 100% against the rollout bot is inflated.** Mean margin was 41 points on
-an 81-point board and the net never passed first in 12 games. The rollout
-bot's prior gives zero weight to eye-fills and self-ataris, so once only those
-remain it passes while points are still convertible, and the net keeps playing.
-That is a real weakness of the rollout prior rather than net strength, and it
-is why the honest comparison is net against itself.
+**The 100% against the rollout bot is inflated, and was not fixable by tuning.**
+Mean margin was 41 points on an 81-point board and the net never passed first
+in 12 games. The rollout prior gives zero weight to eye-fills and self-ataris,
+and because zero priors are pruned from the tree, `pass` became the only legal
+child — a forced move that search could not weigh at all. That is a real bug
+and is now fixed (`a_vetoed_position_still_offers_moves`), but fixing it did
+not rescue the comparison: offering those moves at a flat prior made the bot
+fill its own eyes and lose every group (margin 81 of 81 points, 64 stones
+captured), and biasing back toward passing landed at margin 48. Three attempts,
+three contaminated results.
+
+The lesson is that a hand-written rollout bot is not a usable yardstick,
+because its endgame is an approximation that breaks down exactly where games
+are decided. **Net against previous net is the measurement that means
+something**, which is also how AlphaZero measures progress. The heuristic
+rollouts were scaffolding to bootstrap the first training data before any net
+existed — real AlphaZero needs none of this, and neither does this loop any
+more.
 
 ### Two traps worth knowing
 

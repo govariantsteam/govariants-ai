@@ -9,10 +9,11 @@
 use clap::{Parser, Subcommand};
 use govariants_ai::game::Game;
 use govariants_ai::games::baduk::{Baduk, BadukConfig, BadukMove};
-use govariants_ai::mcts::{Evaluator, MctsConfig, search_detailed};
+use govariants_ai::mcts::{Evaluator, MctsConfig, NoiseConfig, search_detailed};
 use govariants_ai::net::NetEvaluator;
 use govariants_ai::play::parse_board;
 use govariants_ai::rollout::HeuristicRolloutEvaluator;
+use govariants_ai::selfplay::{SelfPlayConfig, run_self_play};
 use std::path::PathBuf;
 use std::time::Instant;
 
@@ -55,6 +56,43 @@ enum Command {
         /// Opening moves played at temperature 1, for variety.
         #[arg(long, default_value_t = 6)]
         opening_randomness: usize,
+    },
+    /// Play two models against each other at equal search.
+    ///
+    /// The measurement that says whether an iteration of the loop helped:
+    /// both sides are nets, so neither can exploit a quirk of a hand-written
+    /// opponent, and colors alternate.
+    Versus {
+        /// The challenger. `--model` is the incumbent.
+        #[arg(long)]
+        challenger: PathBuf,
+        #[arg(long, default_value_t = 20)]
+        games: usize,
+        #[arg(long, default_value_t = 200)]
+        simulations: usize,
+        #[arg(long, default_value_t = 6)]
+        opening_randomness: usize,
+    },
+    /// Generate training data with the net itself.
+    ///
+    /// This is the AlphaZero loop proper: no rollouts and no hand-written
+    /// heuristics anywhere, just the current net plus search generating the
+    /// data the next net trains on.
+    Selfplay {
+        #[arg(long, default_value_t = 150)]
+        games: usize,
+        #[arg(long, default_value_t = 200)]
+        simulations: usize,
+        /// Temperature for move selection; 1.0 keeps the data diverse.
+        #[arg(long, default_value_t = 1.0)]
+        temperature: f32,
+        /// Dirichlet noise at the root (0 disables), for exploration.
+        #[arg(long, default_value_t = 0.3)]
+        noise_alpha: f32,
+        #[arg(long, default_value_t = 0.25)]
+        noise_epsilon: f32,
+        #[arg(long)]
+        output: String,
     },
     /// Net against itself at two search depths.
     ///
@@ -253,6 +291,146 @@ fn main() {
                 "(uniform over {} legal moves would be {:.4}; a flat policy means the net learned nothing)",
                 ranked.len(),
                 uniform
+            );
+        }
+
+        Command::Versus {
+            challenger,
+            games,
+            simulations,
+            opening_randomness,
+        } => {
+            if !challenger.exists() {
+                eprintln!("error: no challenger model at {}", challenger.display());
+                std::process::exit(1);
+            }
+            let other = match NetEvaluator::load(&challenger, &game) {
+                Ok(net) => net,
+                Err(error) => {
+                    eprintln!("error loading {}: {}", challenger.display(), error);
+                    std::process::exit(1);
+                }
+            };
+            println!(
+                "challenger {} vs incumbent {}, {} games at {} sims each",
+                challenger.display(),
+                cli.model.display(),
+                games,
+                simulations
+            );
+
+            let start = Instant::now();
+            let mut challenger_wins = 0;
+            let mut incumbent_wins = 0;
+            let mut draws = 0;
+            let mut total_margin = 0.0f32;
+
+            for i in 0..games {
+                let challenger_is_black = i % 2 == 0;
+                let mut board = Baduk::new(config.clone());
+                let max_moves = board.num_nodes() * 3;
+                let mut played = 0;
+                while !board.is_terminal() && played < max_moves {
+                    let to_play = board.next_to_play()[0];
+                    let challenger_turn = (to_play == 0) == challenger_is_black;
+                    let temperature = if played < opening_randomness {
+                        1.0
+                    } else {
+                        0.0
+                    };
+                    let mv = if challenger_turn {
+                        choose(&board, &other, simulations, temperature)
+                    } else {
+                        choose(&board, &net, simulations, temperature)
+                    };
+                    board.play_move(to_play, mv);
+                    played += 1;
+                }
+                let (black, white) = board.score();
+                total_margin += (black - white).abs();
+                let black_result = if black > white {
+                    1
+                } else if white > black {
+                    -1
+                } else {
+                    0
+                };
+                let result = if challenger_is_black {
+                    black_result
+                } else {
+                    -black_result
+                };
+                match result {
+                    1 => challenger_wins += 1,
+                    -1 => incumbent_wins += 1,
+                    _ => draws += 1,
+                }
+                print!("\r  {}/{} played", i + 1, games);
+                use std::io::Write;
+                let _ = std::io::stdout().flush();
+            }
+            let elapsed = start.elapsed().as_secs_f64();
+            let score = challenger_wins as f64 + 0.5 * draws as f64;
+            let winrate = 100.0 * score / games as f64;
+            println!();
+            println!(
+                "challenger {} - {} incumbent ({} draws)  challenger winrate {:.1}%  mean |margin| {:.1}  [{:.0}s]",
+                challenger_wins,
+                incumbent_wins,
+                draws,
+                winrate,
+                total_margin / games as f32,
+                elapsed
+            );
+            // Rough Elo difference, for scale.
+            if winrate > 0.0 && winrate < 100.0 {
+                let p = winrate / 100.0;
+                let elo = -400.0 * (1.0 / p - 1.0).log10();
+                println!("that is roughly {:+.0} Elo", elo);
+            }
+        }
+
+        Command::Selfplay {
+            games,
+            simulations,
+            temperature,
+            noise_alpha,
+            noise_epsilon,
+            output,
+        } => {
+            let noise = if noise_alpha > 0.0 {
+                Some(NoiseConfig {
+                    alpha: noise_alpha,
+                    epsilon: noise_epsilon,
+                })
+            } else {
+                None
+            };
+            let mcts_config = MctsConfig {
+                num_simulations: simulations,
+                temperature,
+                noise,
+                ..Default::default()
+            };
+            let selfplay_config = SelfPlayConfig {
+                num_games: games,
+                mcts_config,
+                output_dir: output.clone(),
+            };
+            println!(
+                "generating {} games with the net ({} sims/move) into {}",
+                games, simulations, output
+            );
+            let start = Instant::now();
+            let board = config.clone();
+            let result = run_self_play(&selfplay_config, move || Baduk::new(board.clone()), &net);
+            let elapsed = start.elapsed().as_secs_f64();
+            println!(
+                "done: {} games, {} examples in {:.0}s ({:.2} games/s)",
+                result.games_completed,
+                result.total_examples,
+                elapsed,
+                result.games_completed as f64 / elapsed
             );
         }
 

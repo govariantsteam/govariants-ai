@@ -18,6 +18,11 @@ use crate::mcts::Evaluator;
 use rand::prelude::*;
 use rand::rng;
 
+/// Prior given to a move the heuristics vetoed, when nothing else is legal.
+/// Small enough that passing stays the default, large enough that search can
+/// still reach it.
+const VETOED_MOVE_WEIGHT: f32 = 0.02;
+
 #[derive(Clone, Debug)]
 pub struct HeuristicRolloutEvaluator {
     /// Rollouts averaged per evaluation.
@@ -75,9 +80,42 @@ impl HeuristicRolloutEvaluator {
             sum += weight;
         }
 
+        if sum == 0.0 {
+            // Every board move was vetoed, so only our own eyes and
+            // self-ataris remain. A veto must not become a *forced* pass:
+            // zero priors are pruned from the tree, so pass would be the only
+            // child and search could not weigh it at all. Passing can lose the
+            // game outright -- if the opponent still has points to take, we
+            // have to be able to answer -- so fall back to a flat prior over
+            // legal moves and let the search decide.
+            // A *small* weight, not an equal one. Passing is almost always
+            // right here, and a flat prior makes PUCT explore filling our own
+            // eyes before it ever evaluates passing properly -- which loses
+            // whole groups. This leaves pass dominant while keeping the other
+            // moves reachable if search finds that passing loses.
+            // `node` indexes the board and is needed for the stone lookup and
+            // the probe, so iterating `policy` directly would not help.
+            #[allow(clippy::needless_range_loop)]
+            for node in 0..n {
+                if game.stones()[node] != Color::Empty {
+                    continue;
+                }
+                if game.probe(node, color, scratch).is_some() {
+                    policy[node] = VETOED_MOVE_WEIGHT;
+                    sum += VETOED_MOVE_WEIGHT;
+                }
+            }
+        }
+
         // Passing stays available, but is never the preferred option while
-        // real moves exist.
-        let pass_weight = if sum > 0.0 { 0.05 } else { 1.0 };
+        // genuinely good moves exist. When only vetoed moves remain it becomes
+        // the dominant prior instead.
+        let only_vetoed_moves_left = sum > 0.0 && sum <= VETOED_MOVE_WEIGHT * n as f32;
+        let pass_weight = if sum > 0.0 && !only_vetoed_moves_left {
+            0.05
+        } else {
+            1.0
+        };
         policy[n] = pass_weight;
         sum += pass_weight;
 
@@ -238,6 +276,7 @@ fn tactical_reply(
 mod tests {
     use super::*;
     use crate::games::baduk::BadukConfig;
+    use crate::mcts::{MctsConfig, search_detailed};
 
     #[test]
     fn rollout_never_fills_own_eye() {
@@ -308,6 +347,63 @@ mod tests {
         assert_eq!(policy[0], 0.0, "own eye should get zero prior");
         let sum: f32 = policy.iter().sum();
         assert!((sum - 1.0).abs() < 1e-4);
+    }
+
+    #[test]
+    fn a_vetoed_position_still_offers_moves() {
+        // Black holds the four edge-centres of a 3x3 board, so every empty
+        // point is one of its own eyes and the heuristic vetoes all of them.
+        //
+        //     . X .
+        //     X . X
+        //     . X .
+        //
+        // The prior must still offer those moves. Before this was fixed, pass
+        // was the only action with a non-zero prior, zero priors are pruned
+        // from the tree, and the bot therefore passed without search -- which
+        // handed away any points an opponent could still take, and quietly
+        // inflated every match against it.
+        let mut game = Baduk::new(BadukConfig::grid(3, 3, 0.5));
+        game.play_move(0, BadukMove::Place(1));
+        game.play_move(1, BadukMove::Pass);
+        game.play_move(0, BadukMove::Place(3));
+        game.play_move(1, BadukMove::Pass);
+        game.play_move(0, BadukMove::Place(5));
+        game.play_move(1, BadukMove::Pass);
+        game.play_move(0, BadukMove::Place(7));
+        game.play_move(1, BadukMove::Pass);
+
+        assert_eq!(game.next_to_play(), vec![0], "black to move");
+        let mut scratch = game.new_scratch();
+        for node in [0usize, 2, 4, 6, 8] {
+            assert!(
+                game.is_eye_for(node, Color::Black, &mut scratch),
+                "node {} should read as a black eye",
+                node
+            );
+        }
+
+        let evaluator = HeuristicRolloutEvaluator::default();
+        let policy = evaluator.prior(&game, &mut scratch);
+        let pass_index = game.num_nodes();
+        let board_mass: f32 = policy[..pass_index].iter().sum();
+        assert!(
+            board_mass > 0.0,
+            "every board move was vetoed and pass became forced; policy was {:?}",
+            policy
+        );
+
+        // And the search must therefore be able to choose something else.
+        let config = MctsConfig {
+            num_simulations: 64,
+            temperature: 0.0,
+            ..Default::default()
+        };
+        let outcome = search_detailed(&game, &evaluator, &config);
+        assert!(
+            outcome.visits[..pass_index].iter().any(|&v| v > 0.0),
+            "search only ever considered passing"
+        );
     }
 
     #[test]
