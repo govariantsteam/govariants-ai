@@ -137,7 +137,11 @@ fn status_line(game: &Baduk) -> String {
     let caps = game.captures();
     format!(
         "black X: {:.1} pts, {} captured   |   white O: {:.1} pts (komi {:.1}), {} captured",
-        black, caps[0], white, game.komi(), caps[1]
+        black,
+        caps[0],
+        white,
+        game.komi(),
+        caps[1]
     )
 }
 
@@ -163,7 +167,11 @@ pub fn interactive(
     out: &mut dyn Write,
 ) -> std::io::Result<()> {
     let mut game = Baduk::new(config.clone());
-    let human_color = if human_player == 0 { "black (X)" } else { "white (O)" };
+    let human_color = if human_player == 0 {
+        "black (X)"
+    } else {
+        "white (O)"
+    };
 
     writeln!(
         out,
@@ -229,7 +237,11 @@ pub fn interactive(
                 writeln!(out, "{}", status_line(&game))?;
             }
             "resign" => {
-                writeln!(out, "You resign. {} wins.", if human_player == 0 { "White" } else { "Black" })?;
+                writeln!(
+                    out,
+                    "You resign. {} wins.",
+                    if human_player == 0 { "White" } else { "Black" }
+                )?;
                 return Ok(());
             }
             "pass" => {
@@ -345,7 +357,11 @@ pub fn play_game(
         let to_play = game.next_to_play()[0];
         let a_turn = (to_play == 0) == a_plays_black;
         let agent = if a_turn { agent_a } else { agent_b };
-        let temperature = if played < opening_randomness { 1.0 } else { 0.0 };
+        let temperature = if played < opening_randomness {
+            1.0
+        } else {
+            0.0
+        };
         let (mv, _) = agent.choose(&game, temperature);
         game.play_move(to_play, mv);
         played += 1;
@@ -361,7 +377,11 @@ pub fn play_game(
     };
 
     // Translate to agent A's perspective.
-    if a_plays_black { black_result } else { -black_result }
+    if a_plays_black {
+        black_result
+    } else {
+        -black_result
+    }
 }
 
 /// Play `games` games with alternating colors and tally the result.
@@ -401,12 +421,21 @@ pub fn parse_board(spec: &str) -> Result<Topology, String> {
     let parse_dims = |d: &str| -> Result<(usize, usize), String> {
         match d.split_once('x') {
             Some((w, h)) => {
-                let w = w.trim().parse::<usize>().map_err(|_| format!("bad width '{}'", w))?;
-                let h = h.trim().parse::<usize>().map_err(|_| format!("bad height '{}'", h))?;
+                let w = w
+                    .trim()
+                    .parse::<usize>()
+                    .map_err(|_| format!("bad width '{}'", w))?;
+                let h = h
+                    .trim()
+                    .parse::<usize>()
+                    .map_err(|_| format!("bad height '{}'", h))?;
                 Ok((w, h))
             }
             None => {
-                let n = d.trim().parse::<usize>().map_err(|_| format!("bad size '{}'", d))?;
+                let n = d
+                    .trim()
+                    .parse::<usize>()
+                    .map_err(|_| format!("bad size '{}'", d))?;
                 Ok((n, n))
             }
         }
@@ -484,14 +513,7 @@ mod tests {
         let script = "help\nscore\nC3\nnbrs C3\nquit\n";
         let mut input = Cursor::new(script.as_bytes());
         let mut output: Vec<u8> = Vec::new();
-        interactive(
-            &config,
-            Agent::Random,
-            0,
-            &mut input,
-            &mut output,
-        )
-        .unwrap();
+        interactive(&config, Agent::Random, 0, &mut input, &mut output).unwrap();
         let text = String::from_utf8(output).unwrap();
         assert!(text.contains("Commands:"));
         assert!(text.contains("touches"));

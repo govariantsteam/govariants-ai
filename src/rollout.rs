@@ -139,9 +139,7 @@ pub fn playout(
         played += 1;
     }
 
-    state
-        .result()
-        .unwrap_or_else(|| state.result_from_score())
+    state.result().unwrap_or_else(|| state.result_from_score())
 }
 
 /// Pick a rollout move: answer a tactical threat if there is one, otherwise
@@ -156,9 +154,10 @@ pub fn choose_move(
 
     if let Some(BadukMove::Place(last)) = state.last_move()
         && rng.random::<f32>() < tactical_probability
-            && let Some(mv) = tactical_reply(state, last, color, scratch) {
-                return mv;
-            }
+        && let Some(mv) = tactical_reply(state, last, color, scratch)
+    {
+        return mv;
+    }
 
     let n = state.num_nodes();
     if n == 0 {
@@ -198,8 +197,7 @@ fn tactical_reply(
     // Capture first. The group to take may be the one the opponent just
     // played -- that is the common case, a stone played into atari -- or a
     // group next to it that the move left short of liberties.
-    let capture_candidates =
-        std::iter::once(last).chain(neighbors.iter().map(|&n| n as usize));
+    let capture_candidates = std::iter::once(last).chain(neighbors.iter().map(|&n| n as usize));
     for nb in capture_candidates {
         if state.stones()[nb] != opponent {
             continue;
@@ -208,9 +206,10 @@ fn tactical_reply(
             continue;
         }
         if let Some(liberty) = state.first_liberty(nb, scratch)
-            && state.probe(liberty, color, scratch).is_some() {
-                return Some(BadukMove::Place(liberty));
-            }
+            && state.probe(liberty, color, scratch).is_some()
+        {
+            return Some(BadukMove::Place(liberty));
+        }
     }
 
     // Otherwise, rescue one of our own groups that the last move put in atari.
@@ -223,12 +222,13 @@ fn tactical_reply(
             continue;
         }
         if let Some(liberty) = state.first_liberty(nb, scratch)
-            && let Some(probe) = state.probe(liberty, color, scratch) {
-                // Only worth it if it actually gains liberties or captures.
-                if !probe.captured.is_empty() || probe.liberties >= 2 {
-                    return Some(BadukMove::Place(liberty));
-                }
+            && let Some(probe) = state.probe(liberty, color, scratch)
+        {
+            // Only worth it if it actually gains liberties or captures.
+            if !probe.captured.is_empty() || probe.liberties >= 2 {
+                return Some(BadukMove::Place(liberty));
             }
+        }
     }
 
     None
@@ -238,7 +238,6 @@ fn tactical_reply(
 mod tests {
     use super::*;
     use crate::games::baduk::BadukConfig;
-    
 
     #[test]
     fn rollout_never_fills_own_eye() {
@@ -259,11 +258,7 @@ mod tests {
         assert_eq!(game.next_to_play(), vec![0]);
         for _ in 0..200 {
             let mv = choose_move(&game, 0.9, &mut scratch, &mut rng);
-            assert_ne!(
-                mv,
-                BadukMove::Place(0),
-                "rollout policy filled its own eye"
-            );
+            assert_ne!(mv, BadukMove::Place(0), "rollout policy filled its own eye");
         }
     }
 

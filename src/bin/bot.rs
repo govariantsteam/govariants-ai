@@ -21,10 +21,10 @@ use govariants_ai::games::topology::Topology;
 use govariants_ai::govariants::{
     Client, DEFAULT_BASE, LivePosition, encode_move, position_from_state, topology_from_config,
 };
-use serde_json::json;
 use govariants_ai::mcts::{MctsConfig, search_detailed};
 use govariants_ai::rollout::HeuristicRolloutEvaluator;
 use serde_json::Value;
+use serde_json::json;
 use std::time::Duration;
 
 const CREDENTIALS_FILE: &str = ".govariants-bot-credentials";
@@ -210,7 +210,10 @@ fn load_credentials() -> Result<(String, String), String> {
     }
     match (username, password) {
         (Some(u), Some(p)) => Ok((u, p)),
-        _ => Err(format!("{} is missing a username or password", CREDENTIALS_FILE)),
+        _ => Err(format!(
+            "{} is missing a username or password",
+            CREDENTIALS_FILE
+        )),
     }
 }
 
@@ -227,10 +230,7 @@ fn save_credentials(username: &str, password: &str) -> Result<(), String> {
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;
-        let _ = std::fs::set_permissions(
-            CREDENTIALS_FILE,
-            std::fs::Permissions::from_mode(0o600),
-        );
+        let _ = std::fs::set_permissions(CREDENTIALS_FILE, std::fs::Permissions::from_mode(0o600));
     }
     Ok(())
 }
@@ -345,10 +345,7 @@ fn fetch_position(client: &Client, game_id: &str) -> Result<(Value, LivePosition
     let initial = client
         .initial_state(game_id)
         .map_err(|e| format!("could not read game: {}", e))?;
-    let config = initial
-        .get("config")
-        .cloned()
-        .ok_or("game has no config")?;
+    let config = initial.get("config").cloned().ok_or("game has no config")?;
     let state = client
         .state(game_id)
         .map_err(|e| format!("could not read state: {}", e))?;
@@ -389,11 +386,9 @@ fn ranked_moves(game: &Baduk, simulations: usize, rollouts: usize) -> (Vec<Baduk
 fn describe_move(position: &LivePosition, mv: BadukMove) -> String {
     match mv {
         BadukMove::Pass => "pass".to_string(),
-        BadukMove::Place(node) => format!(
-            "{} (node {})",
-            encode_move(&position.topology, node),
-            node
-        ),
+        BadukMove::Place(node) => {
+            format!("{} (node {})", encode_move(&position.topology, node), node)
+        }
     }
 }
 
@@ -423,7 +418,10 @@ fn probe(base: &str, game_id: &str, simulations: usize) -> Result<(), String> {
     println!("next to play: {:?}", position.next_to_play);
     println!("captures: {:?}", position.game.captures());
     let (black, white) = position.game.score();
-    println!("area score as it stands: black {:.1}, white {:.1}", black, white);
+    println!(
+        "area score as it stands: black {:.1}, white {:.1}",
+        black, white
+    );
     print!("{}", govariants_ai::play::render(&position.game));
 
     if position.next_to_play.is_empty() {
@@ -500,7 +498,11 @@ fn host(
 
     let site = base.trim_end_matches("/api");
     println!("created game {} on {}", game_id, topology.describe());
-    println!("bot is seated at seat {} ({})", seat, if seat == 0 { "black" } else { "white" });
+    println!(
+        "bot is seated at seat {} ({})",
+        seat,
+        if seat == 0 { "black" } else { "white" }
+    );
     println!();
     println!("  open {}/game/{} and take the other seat", site, game_id);
     println!();

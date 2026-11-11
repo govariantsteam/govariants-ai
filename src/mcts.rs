@@ -266,9 +266,10 @@ fn apply_temperature(visits: &[f32], temperature: f32) -> Vec<f32> {
             .iter()
             .enumerate()
             .max_by(|a, b| a.1.partial_cmp(b.1).unwrap())
-            && visits[best] > 0.0 {
-                result[best] = 1.0;
-            }
+            && visits[best] > 0.0
+        {
+            result[best] = 1.0;
+        }
         return result;
     }
 
@@ -328,7 +329,10 @@ fn simulate<G: Game, E: Evaluator<G>>(
     evaluator: &E,
     config: &MctsConfig,
 ) -> f32 {
-    debug_assert!(!game.is_terminal(), "simulate called on a terminal position");
+    debug_assert!(
+        !game.is_terminal(),
+        "simulate called on a terminal position"
+    );
 
     let players = game.next_to_play();
     if players.is_empty() {
@@ -419,7 +423,11 @@ mod tests {
 
         assert_eq!(policy.len(), game.action_size());
         let sum: f32 = policy.iter().sum();
-        assert!((sum - 1.0).abs() < 1e-4, "policy should sum to 1, got {}", sum);
+        assert!(
+            (sum - 1.0).abs() < 1e-4,
+            "policy should sum to 1, got {}",
+            sum
+        );
         assert!(policy.iter().all(|&p| p >= 0.0));
     }
 
@@ -522,8 +530,16 @@ mod tests {
         assert_eq!(game.next_to_play(), vec![0]);
         assert_eq!(game.consecutive_passes(), 1);
         let mut scratch = game.new_scratch();
-        assert_eq!(game.liberties_at(3, &mut scratch), 1, "black group in atari");
-        assert_eq!(game.liberties_at(1, &mut scratch), 1, "white group in atari");
+        assert_eq!(
+            game.liberties_at(3, &mut scratch),
+            1,
+            "black group in atari"
+        );
+        assert_eq!(
+            game.liberties_at(1, &mut scratch),
+            1,
+            "white group in atari"
+        );
 
         // Passing ends the game as a half-point loss.
         let mut passed = game.clone();

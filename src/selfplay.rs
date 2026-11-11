@@ -57,39 +57,37 @@ where
     // Log every game for small runs, every ~5% for large runs
     let log_interval = (config.num_games / 20).max(1);
 
-    (0..config.num_games)
-        .into_par_iter()
-        .for_each(|game_idx| {
-            let game = make_game();
-            let game_start = Instant::now();
-            let examples = play_one_game(&game, evaluator, &config.mcts_config);
-            let num_examples = examples.len();
-            let game_elapsed = game_start.elapsed();
+    (0..config.num_games).into_par_iter().for_each(|game_idx| {
+        let game = make_game();
+        let game_start = Instant::now();
+        let examples = play_one_game(&game, evaluator, &config.mcts_config);
+        let num_examples = examples.len();
+        let game_elapsed = game_start.elapsed();
 
-            if !examples.is_empty() {
-                let path = Path::new(&config.output_dir).join(format!("game_{:06}.bin", game_idx));
-                serialize_examples(&examples, &game, &path);
-            }
+        if !examples.is_empty() {
+            let path = Path::new(&config.output_dir).join(format!("game_{:06}.bin", game_idx));
+            serialize_examples(&examples, &game, &path);
+        }
 
-            let completed = games_completed.fetch_add(1, Ordering::Relaxed) + 1;
-            total_examples.fetch_add(num_examples, Ordering::Relaxed);
+        let completed = games_completed.fetch_add(1, Ordering::Relaxed) + 1;
+        total_examples.fetch_add(num_examples, Ordering::Relaxed);
 
-            if completed.is_multiple_of(log_interval) || completed == config.num_games {
-                let total_elapsed = start.elapsed().as_secs_f64();
-                let games_per_sec = completed as f64 / total_elapsed;
-                let remaining = (config.num_games - completed) as f64 / games_per_sec;
-                eprintln!(
-                    "[{}/{}] game #{} done: {} moves in {:.1}s ({:.1} games/s, ~{:.0}s remaining)",
-                    completed,
-                    config.num_games,
-                    game_idx,
-                    num_examples,
-                    game_elapsed.as_secs_f64(),
-                    games_per_sec,
-                    remaining,
-                );
-            }
-        });
+        if completed.is_multiple_of(log_interval) || completed == config.num_games {
+            let total_elapsed = start.elapsed().as_secs_f64();
+            let games_per_sec = completed as f64 / total_elapsed;
+            let remaining = (config.num_games - completed) as f64 / games_per_sec;
+            eprintln!(
+                "[{}/{}] game #{} done: {} moves in {:.1}s ({:.1} games/s, ~{:.0}s remaining)",
+                completed,
+                config.num_games,
+                game_idx,
+                num_examples,
+                game_elapsed.as_secs_f64(),
+                games_per_sec,
+                remaining,
+            );
+        }
+    });
 
     SelfPlayResult {
         games_completed: games_completed.load(Ordering::Relaxed),
@@ -298,7 +296,10 @@ mod tests {
 
         let examples = play_one_game(&game, &evaluator, &config);
 
-        assert!(!examples.is_empty(), "Game should produce training examples");
+        assert!(
+            !examples.is_empty(),
+            "Game should produce training examples"
+        );
 
         for ex in &examples {
             assert_eq!(ex.node_features.len(), 25); // 5x5
