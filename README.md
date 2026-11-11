@@ -2,6 +2,8 @@
 
 AlphaZero-style training engine for [Go Variants](https://github.com/govariantsteam/govariants). Trains AI opponents that can play across any board topology — standard grids, cubes, circular boards, and more.
 
+There is no neural net yet, but there is a bot you can play right now: `cargo run --release -- play --board cube:3`.
+
 ## Why build this?
 
 The govariants project has 19+ game variants. We evaluated existing frameworks:
@@ -73,21 +75,70 @@ trait Game: Clone + Send {
 }
 ```
 
+### Board topologies (`src/games/topology.rs`)
+
+Because the rules only consult adjacency, a board is just a graph. Three topologies ship today:
+
+| Topology | Spec | Nodes | Notes |
+|----------|------|-------|-------|
+| Grid | `9x9`, `grid:5x7` | w×h | standard board; corners and edges |
+| Torus | `torus:7x7` | w×h | wraps on both axes, 4-regular, no edges or corners |
+| Cube | `cube:3` | 6n² | surface of a cube, 4-regular, stitched across faces |
+| Circular | — | rings×per-ring | govariants' circular boards; see below |
+| GridWithHoles | — | non-zero cells | govariants' bitmap boards |
+
+Circular and GridWithHoles exist to match govariants rather than to be
+configured by hand, so they have no `--board` spelling yet; the conformance
+harness builds them from a game's config.
+
+**Circular** is not a stack of independent circles. Each ring is rotated half
+a step from the one inside it, so every node has two radial neighbors inward,
+and **only the innermost and outermost rings carry intra-ring edges** — the
+middle rings connect purely radially. It is a triangular lattice on an
+annulus. Making every ring a cycle is the natural misreading and it changes
+which stones form a group.
+
+**GridWithHoles** is a bitmap where each cell is 0 (no intersection) or a
+mask: bit 0 connects right, bit 1 connects down, and 4 marks an intersection
+that only receives edges from above or the left. It is *not* "a grid with
+cells deleted" — a cell can sit next to a surviving neighbor with no edge
+between them.
+
+Cube adjacency is **derived from 3D cell-center positions**, not hand-stitched face edges: two cells are neighbors iff their centers sit a half-step apart across a cube edge, or one step apart within a face. That removes the orientation bookkeeping that makes cube boards error-prone, and it yields 3D coordinates for free — which is exactly what edge features (#8) need.
+
+Adding a topology means writing one adjacency builder. The rules, search, and self-play pipeline need no changes.
+
 ### Baduk (`src/games/baduk.rs`)
 
-Standard Go implementation: stone placement, capture logic, positional superko, area scoring. Configurable board size (default 9x9).
+Go on an arbitrary board graph: stone placement, capture, suicide, simple ko, positional superko, and area scoring — all expressed purely in terms of adjacency, so the same engine plays every topology above.
 
 Node features: `[is_current_player, is_opponent, is_empty, normalized_liberty_count]`
 
 ### MCTS (`src/mcts.rs`)
 
-Monte Carlo Tree Search with PUCT selection and a pluggable `Evaluator` trait. Currently uses random rollouts; will use the GNN once the Python side is ready.
+Monte Carlo Tree Search with PUCT selection and a pluggable `Evaluator` trait. Values are stored from the perspective of the player to move at each node and negated on the way back up; terminal positions are scored by the parent, which still knows whose turn it was.
 
 ```rust
 trait Evaluator<G: Game> {
     fn evaluate(&self, game: &G) -> (Vec<f32>, f32); // (policy, value)
 }
 ```
+
+An evaluator may assign a prior of zero to veto a move, and the tree prunes it. The heuristic evaluator uses this to refuse to fill its own eyes.
+
+### Heuristic rollouts (`src/rollout.rs`)
+
+Uniformly random rollouts are close to worthless in Go: random play fills its own eyes and lets settled groups die, so the value estimate barely correlates with the position. Three classic pre-AlphaGo rules fix most of it:
+
+1. never fill your own eye,
+2. never put your own group in atari for nothing,
+3. answer the opponent's last move when it created or escaped an atari.
+
+All three are stated in terms of adjacency alone, so they work on any topology. (On a general graph there is no diagonal relation, so the classical false-eye test does not apply; the eye test here is the topology-agnostic analogue — all neighbors friendly, none of those groups in atari.)
+
+### Playable bot (`src/play.rs`)
+
+A terminal UI to play the engine, plus an engine-vs-engine harness for measuring strength.
 
 ### Self-play pipeline (`src/selfplay.rs`)
 
@@ -98,17 +149,241 @@ Each game produces a `.bin` file in the output directory containing all training
 ## Building and running
 
 ```bash
-cargo build
+cargo build --release
 cargo test
-
-# Run self-play (use --release for real runs)
-cargo run --release -- --games 100 --simulations 200
-
-# Quick test run on a small board
-cargo run -- --games 5 --simulations 30 --width 5 --height 5 --rollouts 2
 ```
 
-See all options with `cargo run -- --help`.
+### Play against it
+
+```bash
+# 9x9 grid
+cargo run --release -- play --board 9x9
+
+# on a cube surface (6 faces of 3x3 = 54 points)
+cargo run --release -- play --board cube:3 --komi 0.5
+
+# on a torus, as white
+cargo run --release -- play --board torus:7x7 --white
+```
+
+Points are named `D4` on grids and tori, and `Fc2` on cubes (face `U`/`L`/`F`/`R`/`B`/`D`, then column, then row). In-game commands: `pass`, `hint`, `score`, `board`, `nbrs <point>` (list a point's neighbors — useful when a cube edge makes adjacency non-obvious), `resign`, `help`, `quit`.
+
+Trade strength for speed with `--simulations`.
+
+### Measure strength
+
+```bash
+# vs uniformly random play
+cargo run --release -- match --board cube:3 --games 16 --opponent random
+
+# vs plain MCTS at the same simulation count
+cargo run --release -- match --board cube:3 --games 16 --opponent uniform
+
+# more search vs less search
+cargo run --release -- match --board cube:3 --simulations 800 \
+    --opponent heuristic --opponent-simulations 200
+```
+
+### Generate training data
+
+```bash
+cargo run --release -- selfplay --board 9x9 --games 100 --simulations 200
+```
+
+See all options with `cargo run --release -- <subcommand> --help`.
+
+## Strength and performance
+
+Measured on an M-series laptop. The bot is a rollout bot with no neural net yet, so "decent" here means *plays real Go* — it captures, defends, builds eyes, keeps its own territory, and passes when nothing is left — not that it is strong.
+
+| Match (cube:3, 54 points) | Result |
+|---------------------------|--------|
+| heuristic (200 sims) vs random | 20-0 on 5x5, 16-0 on cube |
+| heuristic vs uniform MCTS, equal sims | 81% (cube), 100% (9x9) |
+| heuristic 800 sims vs heuristic 200 sims | 81% |
+
+The last row is the one that matters most: more search wins, which is the signature of a search that is actually working.
+
+### Three things were making the engine unusably bad
+
+**1. Move generation cloned the whole game state per candidate move.** `legal_moves()` cloned the position — board, `Vec<Vec<usize>>` adjacency (one heap allocation per node), and the superko `HashSet` — once for every empty point, just to test legality. Now legality is decided analytically without mutating or cloning, the topology and Zobrist table are shared between clones behind an `Arc`, board hashing is incremental, and the hot paths reuse caller-owned scratch buffers.
+
+**2. PUCT selection had an inverted sign.** Each node stores its value from the perspective of the player to move at that node, but selection compared `child.q_value()` without negating it. Search therefore preferred the moves the *opponent* liked best. This is why there was never a playable bot.
+
+**3. Terminal positions were scored from the wrong player's point of view.** `simulate` returned `result.scores[0]` — always player 0 — regardless of whose turn it was, so roughly half of all decided lines were scored backwards. Terminal positions are now scored by the parent.
+
+A regression test for each lives in `src/mcts.rs`; the sign bugs are pinned by a mutual-atari race on a 3x3 board where passing loses by half a point and the single alternative move wins.
+
+| Benchmark (`cargo run --release --bin bench`) | Before | After |
+|---|---|---|
+| `legal_moves()`, 9x9 | 5,553/s | 387,000/s (70x) |
+| MCTS, 9x9, 200 sims × 5 rollouts | 20 sims/s | 396 sims/s (20x) |
+| One 9x9 search | 10.0s | 0.5s |
+
+## Conformance with govariants
+
+The rules in this repo are a *second* implementation of rules that already
+exist in TypeScript in [govariants](https://github.com/govariantsteam/govariants)
+(`packages/shared/src/variants/`). Two independent implementations of the same
+rules always diverge somewhere, and a divergence is not a cosmetic problem: a
+bot playing on the live server would submit moves the server rejects, or play
+on from a position it has misread.
+
+So ports are verified against real games rather than only against hand-written
+tests:
+
+```bash
+# refresh or extend the corpus (hits the live API, read-only)
+python3 tools/fetch_corpus.py --board-type grid --games 6
+
+# replay it offline
+cargo test --test conformance -- --nocapture
+```
+
+`tools/fetch_corpus.py` downloads finished games and, critically, the board
+after **every round** as the server computed it. `GET /games/:id/state?round=N`
+reports `last_move` for each round, so the full move sequence is recoverable
+for every board type — not just the rectangular boards that SGF export
+supports. Boards are stored as glyph strings, which keeps a 199-round 19x19
+game under 90 KB instead of 637 KB.
+
+The harness replays each game move by move and compares the board and both
+capture counts at every round. Current corpus: **14 games, 1532 rounds**
+across grid, circular and gridWithHoles boards, all matching.
+
+Moves are decoded per topology: grids use SGF coordinates, and every other
+board type uses the decimal node index, which is how govariants encodes them
+on the wire.
+
+A conformance test that cannot fail is worthless, so it is mutation-checked:
+transposing the coordinate decode makes all five games fail by round 2.
+
+### Board types
+
+Across baduk games on the live server the real distribution is roughly:
+
+| Board type | Games seen | Implemented |
+|---|---|---|
+| grid | 128 | yes |
+| circular | 62 | yes |
+| gridWithHoles | 61 | yes |
+| polygonal | 14 | no |
+| sierpinsky | 12 | no |
+| trihexagonal | 8 | no |
+| sunflower | 6 | no |
+| custom | 6 | no |
+
+Grid is only about 37% of real games, so the graph topologies are the majority
+of the work, not an exotic afterthought. The three implemented types cover
+about 85% of games played. govariants' `boardFactory.ts` and its helpers are
+the reference; unsupported board types are reported as skipped by the harness
+rather than silently passing.
+
+### Replaying real games is necessary but not sufficient
+
+Worth recording, because it is easy to over-trust a green corpus.
+
+Both new topologies were mutation-tested. Making every circular ring a cycle
+is caught by the corpus — but at rounds 21 to 49, not round 1, because extra
+edges only change the outcome once a capture depends on them. That is exactly
+the kind of case hand-written tests miss and real games catch.
+
+Ignoring the GridWithHoles connectivity bits, however, **passed the entire
+corpus**. All four finished boards sampled used only values 0 and 3 with zero
+adjacent-but-unconnected pairs — they were plain grids with five cells
+removed, on which the correct and incorrect readings are identical. Targeting
+a board with 72 such pairs did not help either: across its 91 rounds, two
+same-coloured stones never once landed on both ends of one of them, and the
+game contained a single capture.
+
+So the bitmap semantics are pinned by direct unit tests instead
+(`grid_with_holes_respects_connectivity_bits`), which do fail under that
+mutant. The lesson for the remaining board types: fetch real games *and* write
+a structural test, because whether a corpus exercises a given rule is a matter
+of what players happened to play.
+
+## Playing on govariants.com
+
+There is a working bot client (`src/bin/bot.rs`). It needs no server-side
+support: it registers, logs in with a password, takes a seat and posts moves
+exactly as a browser does.
+
+```bash
+# one-off: create the account (writes .govariants-bot-credentials, gitignored)
+cargo run --release --bin bot -- register --username govariantsAiBot
+
+# host a game and wait for a human to take the other seat
+cargo run --release --bin bot -- host --board 9x9 --simulations 4000
+
+# read a game and report the move it would play, without writing anything
+cargo run --release --bin bot -- probe --game-id <id>
+
+# list games, marking which ones it can actually play
+cargo run --release --bin bot -- games
+
+# join an existing game, or give up a seat
+cargo run --release --bin bot -- play --game-id <id> [--seat 0] [--dry-run]
+cargo run --release --bin bot -- leave --game-id <id> --seat 0
+```
+
+Point `--base` at a local instance to test against one.
+
+### How it behaves
+
+`host` is the preferred way to play it: the bot creates its own game and waits,
+so nobody ends up playing a bot without choosing to. It prints the URL to open.
+
+It **refuses to sit at a board it cannot parse** rather than taking a seat and
+then playing badly, and `games` shows exactly why a game is unplayable:
+
+```
+game id                    board            phase     seats   playable
+6acea8f34af6cf110acfe007   grid             play      open    yes
+6aca445aec4422373d5a2a93   sunflower        play      full    no (board type 'sunflower' is not implemented)
+```
+
+**If the server rejects a move, the bot falls back to its next-best choice.**
+That is a design decision, not a patch: `Baduk::from_position` builds a
+position from a board rather than from a move list, because that is what
+joining a game in progress gives you — and **ko state cannot be recovered from
+a single position**. Positional superko history is genuinely gone, and even
+simple ko needs the previous board. So a rejection is expected rather than
+exceptional, and retrying the next candidate turns a correctness problem into
+a retry. It doubles as a safety net for exactly the rules divergence the
+conformance harness exists to catch.
+
+Credentials come from `GOVARIANTS_BOT_USERNAME` / `GOVARIANTS_BOT_PASSWORD`,
+or from `.govariants-bot-credentials` (mode 0600, gitignored) which `register`
+writes. The password is generated and never printed.
+
+Only the `baduk` variant is supported, on grid, circular and gridWithHoles
+boards. Everything else it declines to play. Note that the torus and cube
+topologies in this repo are **not** govariants board types — cube is a separate
+variant there — so they cannot be hosted on the site yet.
+
+Use an obviously-bot account name. There is no `bot` user role on the server
+(`UserRole` is `"admin"` only), so the username is the only disclosure. Names
+must be alphanumeric: the server rejects hyphens and underscores.
+
+### The API, for reference
+
+| Step | Endpoint |
+|---|---|
+| Register | `POST /api/register` (`{username, password}`; email optional, not sent) |
+| Log in | `POST /api/login` |
+| CSRF token | `GET /api/checkLogin` -> `{user, csrf_token}` |
+| List games | `GET /api/games?variant=&count=&offset=` |
+| Create a game | `POST /api/games` (`{variant, config}`) |
+| Take a seat | `POST /api/games/:id/sit/:seat` |
+| Read the position | `GET /api/games/:id/state/initial`, `…/state?round=&seat=` |
+| Play | `POST /api/games/:id/move`, body `{"<seat>": "<move>"}` |
+
+Auth is a session cookie plus a `CSRF-Token` header. Moves are SGF coordinates
+on grids (`"dd"`) and the decimal node index on every other board type. Live
+updates are available over Socket.IO on `game/:id`, `game/:id/seats` and
+`game/:id/:seat` (the last carries hidden state and the server checks seat
+occupancy, which is how Phantom Go would work) — but the bot polls instead,
+which is plenty for a turn-based game and avoids a websocket client.
 
 ## Training data format
 
@@ -173,8 +448,12 @@ Train on mixed topologies from day one — don't start with standard 9x9 Go and 
 See [open issues](https://github.com/govariantsteam/govariants-ai/issues) for the full roadmap:
 
 1. ~~Self-play data pipeline (#1)~~ ✅
-2. GNN model and training loop (#2) ← **next up**
-3. Full training loop integration (#3)
-4. Train and validate model on mixed topologies (#4)
-5. Port variant game rules to Rust (#5)
-6. Serving integration with govariants (#6)
+2. ~~A bot you can actually play, on more than one topology~~ ✅ (grid, torus, cube)
+3. GNN model and training loop (#2) ← **next up**
+4. Full training loop integration (#3)
+5. Train and validate model on mixed topologies (#4)
+6. Edge features for geometric boards (#8) — cube coordinates now exist, so this is mostly plumbing
+7. Port variant game rules to Rust (#5), verified by the conformance harness
+8. Port the remaining board types (polygonal, sierpinsky, trihexagonal, sunflower, custom) — grid, circular and gridWithHoles are done
+9. ~~Adapter that joins games on govariants.com as a named bot account~~ ✅
+10. Serving integration with govariants (#6)
